@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>0001 - 声明 OnBoardingKit 导出的类，并给 Swift 一层便利接口</title>
+<style>
+/* Evolution proposal page, shared style (style A, "Apple documentation").
+   Copy this whole <style> block verbatim. Page-specific rules, if any, go only
+   in the marked block at the end. Must render in WebKit (Safari, Xcode preview,
+   Quick Look): no JavaScript, no external resources. */
+:root {
+  --background: #ffffff; --foreground: #1d1d1f; --secondary: #6e6e73; --separator: #d2d2d7;
+  --panel: #f5f5f7; --code-background: #f2f2f4; --accent: #0071e3;
+  --added: #1f8a4c; --added-fill: #e3f5ea;
+  --changed: #b26a00; --changed-fill: #fdf0db;
+  --removed: #c62828; --removed-fill: #fbe4e4;
+  --moved: #0066cc; --moved-fill: #e5f0fc;
+  --kept: #6e6e73; --kept-fill: #ececef;
+  --token-keyword: #ad3da4; --token-type: #3900a0; --token-string: #c41a16; --token-number: #1c00cf;
+  --token-comment: #707f8c; --token-macro: #643820;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1c1c1e; --foreground: #f2f2f7; --secondary: #a1a1a6; --separator: #3a3a3c;
+    --panel: #2c2c2e; --code-background: #2a2a2d; --accent: #4ea1ff;
+    --added: #4cd281; --added-fill: #183826;
+    --changed: #ffb340; --changed-fill: #3d2c10;
+    --removed: #ff6b6b; --removed-fill: #3d1a1a;
+    --moved: #5aa9ff; --moved-fill: #142b45;
+    --kept: #b0b0b5; --kept-fill: #333336;
+    --token-keyword: #fc5fa3; --token-type: #d0a8ff; --token-string: #fc6a5d; --token-number: #d0bf69;
+    --token-comment: #7f8c98; --token-macro: #fd8f3f;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--background); color: var(--foreground);
+  font: 15px/1.65 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased; }
+.page { max-width: 1080px; margin: 0 auto; padding: 28px 24px 72px; }
+.svg-definitions { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Header */
+.eyebrow { margin: 0 0 6px; font-size: 13px; color: var(--secondary); }
+.crumb + .crumb::before { content: " / "; }
+h1 { font-size: 28px; line-height: 1.3; letter-spacing: -0.01em; margin: 0 0 12px; }
+h1 code { font-size: 0.8em; }
+.proposal-number { color: var(--secondary); margin-right: 4px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; font-size: 13px; color: var(--secondary); }
+.meta div { display: flex; gap: 6px; align-items: baseline; }
+.meta dd { margin: 0; color: var(--foreground); }
+.meta dd code { font-size: 12px; }
+.status { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--kept); background: var(--kept-fill); }
+.status-accepted { color: var(--moved); background: var(--moved-fill); }
+.status-in-progress { color: var(--changed); background: var(--changed-fill); }
+.status-implemented { color: var(--added); background: var(--added-fill); }
+.status-rejected, .status-withdrawn { color: var(--removed); background: var(--removed-fill); }
+
+/* Table of contents */
+.toc { margin: 22px 0 8px; padding: 8px 10px; background: var(--panel); border-radius: 12px; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.toc li { margin: 0; }
+.toc a { display: inline-block; padding: 3px 11px; border-radius: 999px; color: var(--accent); text-decoration: none; font-size: 14px; }
+.toc a:hover { background: var(--background); }
+
+/* Text */
+section { scroll-margin-top: 16px; }
+h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--separator); }
+h3 { font-size: 16px; margin: 22px 0 8px; }
+h4 { font-size: 15px; margin: 18px 0 6px; }
+p { margin: 10px 0; }
+a { color: var(--accent); }
+ul, ol { padding-left: 22px; }
+li { margin: 4px 0; }
+blockquote { margin: 12px 0; padding: 2px 14px; border-left: 3px solid var(--separator); color: var(--secondary); }
+hr { border: none; border-top: 1px solid var(--separator); margin: 24px 0; }
+
+/* Code */
+code { font: 0.86em/1.4 ui-monospace, "SF Mono", Menlo, monospace; background: var(--code-background); padding: 1px 5px; border-radius: 5px; }
+pre { background: var(--code-background); border-radius: 10px; padding: 14px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+pre code { font: inherit; background: none; padding: 0; border-radius: 0; }
+.token-keyword { color: var(--token-keyword); font-weight: 600; }
+.token-type { color: var(--token-type); }
+.token-string { color: var(--token-string); }
+.token-number { color: var(--token-number); }
+.token-comment { color: var(--token-comment); }
+.token-macro { color: var(--token-macro); }
+
+/* Callouts */
+.callout { background: var(--panel); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 16px; margin: 14px 0; }
+.callout-note { border-left-color: var(--secondary); }
+.callout-warning { border-left-color: var(--changed); }
+.callout-title { margin: 0 0 6px; font-weight: 600; }
+.callout > :last-child { margin-bottom: 0; }
+.callout ol, .callout ul { margin: 6px 0 0; }
+
+/* Diagrams */
+.legend { list-style: none; padding: 0; margin: 8px 0 12px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--secondary); }
+.legend li { margin: 0; }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid; vertical-align: -2px; margin-right: 6px; }
+.swatch-added { background: var(--added-fill); border-color: var(--added); }
+.swatch-changed { background: var(--changed-fill); border-color: var(--changed); }
+.swatch-removed { background: var(--removed-fill); border-color: var(--removed); border-style: dashed; }
+.swatch-moved { background: var(--moved-fill); border-color: var(--moved); }
+.swatch-kept { background: var(--kept-fill); border-color: var(--kept); }
+.figure { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--separator); border-radius: 12px; padding: 12px; margin: 12px 0; }
+.figure svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.figure-narrow svg { min-width: 0; max-width: 640px; margin: 0 auto; }
+.figure-caption { font-size: 13px; color: var(--secondary); margin-top: 8px; }
+svg text { font: 12px ui-monospace, "SF Mono", Menlo, monospace; fill: var(--foreground); }
+svg .group-label { font-size: 13px; font-weight: 700; }
+svg .caption { font-size: 10.5px; fill: var(--secondary); }
+svg .strike { text-decoration: line-through; }
+svg .group { fill: none; stroke: var(--separator); stroke-width: 1.5; stroke-dasharray: 5 4; }
+svg .box-added { fill: var(--added-fill); stroke: var(--added); stroke-width: 1.5; }
+svg .box-changed { fill: var(--changed-fill); stroke: var(--changed); stroke-width: 1.5; }
+svg .box-removed { fill: var(--removed-fill); stroke: var(--removed); stroke-width: 1.5; stroke-dasharray: 4 3; }
+svg .box-moved { fill: var(--moved-fill); stroke: var(--moved); stroke-width: 1.5; }
+svg .box-kept { fill: var(--kept-fill); stroke: var(--kept); stroke-width: 1.2; }
+svg .arrow { fill: none; stroke: var(--secondary); stroke-width: 1.4; marker-end: url(#arrowhead); }
+svg .arrow-weak { stroke-dasharray: 4 3; }
+svg .arrow-removed { stroke: var(--removed); stroke-dasharray: 4 3; }
+svg .arrowhead { fill: var(--secondary); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 10px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { border: 1px solid var(--separator); padding: 7px 9px; text-align: left; vertical-align: top; }
+th { background: var(--panel); font-weight: 600; }
+.numeric { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; white-space: nowrap; padding: 0 7px; border-radius: 5px; font-size: 12px; font-weight: 600; color: var(--kept); background: var(--kept-fill); }
+.tag-added { color: var(--added); background: var(--added-fill); }
+.tag-changed { color: var(--changed); background: var(--changed-fill); }
+.tag-removed { color: var(--removed); background: var(--removed-fill); }
+.tag-moved { color: var(--moved); background: var(--moved-fill); }
+
+/* Collapsible sections */
+details { border: 1px solid var(--separator); border-radius: 12px; margin: 12px 0; overflow: hidden; }
+summary { cursor: pointer; list-style: none; padding: 11px 16px; font-weight: 600; background: var(--panel); }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "›"; display: inline-block; width: 1em; color: var(--secondary); -webkit-transition: -webkit-transform 0.15s; transition: transform 0.15s; }
+details[open] > summary::before { -webkit-transform: rotate(90deg); transform: rotate(90deg); }
+details[open] > summary { border-bottom: 1px solid var(--separator); }
+.details-body { padding: 4px 16px 12px; }
+
+@media (max-width: 640px) {
+  .page { padding: 20px 16px 56px; }
+  h1 { font-size: 23px; }
+}
+
+/* ===== Page-specific styles (only for elements the shared style lacks, e.g. UI mockups) ===== */
+</style>
+</head>
+<body>
+<svg class="svg-definitions" aria-hidden="true" focusable="false">
+  <defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M 0 0 L 10 5 L 0 10 z"/></marker></defs>
+</svg>
+<div class="page">
+
+<header class="doc-header">
+  <p class="eyebrow"><span class="crumb">swift-onboardingkit</span><span class="crumb">Evolutions</span><span class="crumb">0001</span></p>
+  <h1><span class="proposal-number">0001</span> 声明 OnBoardingKit 导出的类，并给 Swift 一层便利接口</h1>
+  <dl class="meta">
+    <div><dt>状态</dt><dd><span class="status status-implemented">Implemented</span></dd></div>
+    <div><dt>最后更新</dt><dd>2026-11-23</dd></div>
+    <div><dt>项目类型</dt><dd>库</dd></div>
+    <div><dt>原文</dt><dd><code>0001-objective-c-declarations-and-swift-layer.md</code></dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="目录">
+  <ol>
+    <li><a href="#summary">摘要</a></li>
+    <li><a href="#architecture">架构图</a></li>
+    <li><a href="#map">改动地图</a></li>
+    <li><a href="#proposal">提议方案</a></li>
+    <li><a href="#design">详细设计</a></li>
+    <li><a href="#research">调研</a></li>
+    <li><a href="#alternatives">替代方案</a></li>
+    <li><a href="#impact">影响</a></li>
+    <li><a href="#steps">落地步骤</a></li>
+    <li><a href="#log">决策日志</a></li>
+  </ol>
+</nav>
+
+<main class="content">
+
+<section id="summary">
+  <h2>摘要</h2>
+  <p>新建 swift-onboardingkit 包，给 macOS 私有框架 OnBoardingKit 提供两层接口。<code>COnBoardingKit</code> 是一份手写的 Objective-C 头文件：声明 27.2 SDK 的 <code>OnBoardingKit.tbd</code> 导出的全部 29 个类和 72 个隐私标识常量，成员取自 macOS 11.0 到 27.2 的运行时元数据，类型从框架代码里还原，整数参数换成本包命名的枚举，每个成员标上引入它的系统版本，部署目标 macOS 14。<code>OnBoardingKit</code> 是 Swift 层：功能列表用 result builder 写，容器的按钮用闭包代替 target/action 并自动对应新旧两套按钮，隐私页能 <code>await</code> 到关闭，模板视图有带默认参数的构造器。测试在运行时读取头文件，逐个核对声明的成员在当前系统上是否存在。</p>
+  <div class="callout callout-note">
+    <p class="callout-title">没有待定事项</p>
+    <p>范围（绑定加便利接口）与部署目标（macOS 14）已由用户选定。代码、测试与文档已作为新仓库的第一个提交进入本地 <code>main</code>，没有建远端。</p>
+  </div>
+</section>
+
+<section id="architecture">
+  <h2>架构图</h2>
+  <ul class="legend">
+    <li><i class="swatch swatch-added"></i>新增</li>
+    <li><i class="swatch swatch-kept"></i>不变（系统框架）</li>
+  </ul>
+  <div class="figure">
+  <svg viewBox="0 0 1000 300" role="img" aria-label="Modules of swift-onboardingkit and the system framework they bind">
+    <rect class="group" x="10" y="10" width="300" height="280" rx="10"/>
+    <text class="group-label" x="22" y="30">COnBoardingKit/ (Objective-C)</text>
+    <rect class="box-added" x="25" y="45" width="270" height="50" rx="6"/><text x="35" y="64">OnBoardingKitPrivateAPI.h</text><text class="caption" x="35" y="84">29 classes · 72 identifiers · 5 enums</text>
+    <rect class="box-added" x="25" y="105" width="270" height="34" rx="6"/><text x="35" y="127">module.modulemap</text>
+    <rect class="box-added" x="25" y="149" width="270" height="34" rx="6"/><text x="35" y="171">COnBoardingKit.m (empty)</text>
+    <text class="caption" x="25" y="215">links -F/System/Library/PrivateFrameworks</text>
+    <text class="caption" x="25" y="231">-framework OnBoardingKit</text>
+
+    <rect class="group" x="330" y="10" width="330" height="280" rx="10"/>
+    <text class="group-label" x="342" y="30">OnBoardingKit/ (Swift)</text>
+    <rect class="box-added" x="345" y="45" width="300" height="50" rx="6"/><text x="355" y="64">BulletListItem.swift</text><text class="caption" x="355" y="84">Item · ItemBuilder · addItem(_:)</text>
+    <rect class="box-added" x="345" y="105" width="300" height="50" rx="6"/><text x="355" y="124">TemplateView.swift</text><text class="caption" x="355" y="144">init(title:…:features:)</text>
+    <rect class="box-added" x="345" y="165" width="300" height="50" rx="6"/><text x="355" y="184">TemplateContainerButtons.swift</text><text class="caption" x="355" y="204">ButtonRole · Button · setAction(for:_:)</text>
+    <rect class="box-added" x="345" y="225" width="300" height="50" rx="6"/><text x="355" y="244">PrivacyPresenterPresentation.swift</text><text class="caption" x="355" y="264">presentAsSheet(on:) async</text>
+
+    <rect class="group" x="680" y="10" width="310" height="280" rx="10"/>
+    <text class="group-label" x="692" y="30">OnBoardingKit.framework (system)</text>
+    <rect class="box-kept" x="695" y="45" width="280" height="34" rx="6"/><text x="705" y="67">OBTemplatePartBulletList</text>
+    <rect class="box-kept" x="695" y="105" width="280" height="34" rx="6"/><text x="705" y="127">OBTemplateView</text>
+    <rect class="box-kept" x="695" y="165" width="280" height="34" rx="6"/><text x="705" y="187">OBTemplateContainerViewController</text>
+    <rect class="box-kept" x="695" y="225" width="280" height="34" rx="6"/><text x="705" y="247">OBPrivacyPresenter</text>
+    <text class="caption" x="695" y="280">+ 25 more classes, all declared</text>
+
+    <path class="arrow arrow-weak" d="M 345 150 L 295 75"/>
+    <path class="arrow" d="M 645 70 L 695 62"/>
+    <path class="arrow" d="M 645 130 L 695 122"/>
+    <path class="arrow" d="M 645 190 L 695 182"/>
+    <path class="arrow" d="M 645 250 L 695 242"/>
+  </svg>
+  </div>
+  <p class="figure-caption">Swift 层以 <code>@_exported import</code> 引入头文件（虚线），再调用系统框架的类（实线）。头文件只声明、不实现，类与常量都由系统框架提供。</p>
+
+  <h3>一次 “What's New” 页的调用链</h3>
+<pre><code>OBTemplateView(title:systemImage:features:)
+├── OBTemplatePartBulletList(items:)
+│   └── addItem(_:)  ──&gt; -addItemWithTitle:description:symbol:symbolTintColor:status:
+│                        or -addExpandableItemWithTitle:…:sublistItems:  (only with subitems)
+└── -initWithTitle:bodyText:symbol:contentLayoutStyle:  then  contentArea = bulletList
+
+OBTemplateContainerViewController(templateView:primaryButton:secondaryButton:cancelButton:)
+├── -initWithTemplateView:firstButtonTitle:secondButtonTitle:linkButtonTitle:   (every macOS)
+└── setAction(for:_:) per role
+    ├── button(for:)  macOS 26+: primaryButton / secondaryButton / cancelButton
+    │                 earlier:   firstButton   / linkButton      / secondButton
+    └── ButtonActionTarget (associated with the button) ──&gt; action(controller)
+
+presentAsSheet(on:)  ──&gt; presentingWindow = window; dismissHandler = resume; -present
+                         sheet ends ──&gt; dismissHandler ──&gt; previous handler, continuation resumes</code></pre>
+</section>
+
+<section id="map">
+  <h2>改动地图</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>文件 / 类型</th><th>动作</th><th>改什么</th><th>为什么</th><th>步骤</th></tr></thead>
+    <tbody>
+      <tr><td><code>Package.swift</code></td><td><span class="tag tag-added">新增</span></td><td>两个 target、两个 product、两个测试 target；链接 <code>OnBoardingKit.framework</code></td><td>包本身</td><td class="numeric">1</td></tr>
+      <tr><td><code>.gitignore</code>、<code>LICENSE</code></td><td><span class="tag tag-added">新增</span></td><td>照 swift-skylight</td><td>仓库骨架</td><td class="numeric">1</td></tr>
+      <tr><td><code>Sources/COnBoardingKit/COnBoardingKit.m</code></td><td><span class="tag tag-added">新增</span></td><td>空文件</td><td>SwiftPM 要求 C target 至少一个源文件</td><td class="numeric">1</td></tr>
+      <tr><td><code>Sources/COnBoardingKit/include/module.modulemap</code></td><td><span class="tag tag-added">新增</span></td><td><code>module COnBoardingKit</code></td><td>让 Swift 导入头文件</td><td class="numeric">1</td></tr>
+      <tr><td><code>Sources/COnBoardingKit/include/OnBoardingKitPrivateAPI.h</code></td><td><span class="tag tag-added">新增</span></td><td>29 个类、72 个常量、3 个协议、5 个枚举、<code>CAPackage</code> / <code>CAStateController</code> 的最小声明</td><td>声明本身</td><td class="numeric">2、3</td></tr>
+      <tr><td><code>Tests/COnBoardingKitTests/HeaderDeclarationParser.swift</code></td><td><span class="tag tag-added">新增</span></td><td>读头文件，拆出类、方法、属性与可用性</td><td>让核对测试不必另列一份清单</td><td class="numeric">2</td></tr>
+      <tr><td><code>Tests/COnBoardingKitTests/DeclarationPresenceTests.swift</code></td><td><span class="tag tag-added">新增</span></td><td>每个声明在运行系统上存在</td><td>系统删掉成员时变红</td><td class="numeric">2</td></tr>
+      <tr><td><code>Sources/OnBoardingKit/Exports.swift</code></td><td><span class="tag tag-added">新增</span></td><td><code>@_exported import COnBoardingKit</code></td><td>Swift 调用方只 import 一个模块</td><td class="numeric">4</td></tr>
+      <tr><td><code>Sources/OnBoardingKit/BulletListItem.swift</code> · <code>Item</code> / <code>ItemImage</code> / <code>ItemBuilder</code></td><td><span class="tag tag-added">新增</span></td><td>行的值类型、builder、<code>init(items:)</code>、<code>addItem(_:)</code>、<code>addItems</code></td><td>十个 <code>addItem…</code> 合成一种写法</td><td class="numeric">4</td></tr>
+      <tr><td><code>Sources/OnBoardingKit/TemplateView.swift</code> · <code>OBTemplateView</code> 扩展</td><td><span class="tag tag-added">新增</span></td><td>两个便利构造器、<code>bulletList</code></td><td>默认参数，功能列表一步到位</td><td class="numeric">5</td></tr>
+      <tr><td><code>Sources/OnBoardingKit/TemplateContainerButtons.swift</code> · <code>ButtonRole</code> / <code>Button</code> / <code>ButtonActionTarget</code></td><td><span class="tag tag-added">新增</span></td><td>构造器、<code>button(for:)</code>、<code>setAction(for:_:)</code></td><td>按钮不接 target/action；新旧按钮对应</td><td class="numeric">5</td></tr>
+      <tr><td><code>Sources/OnBoardingKit/PrivacyPresenterPresentation.swift</code></td><td><span class="tag tag-added">新增</span></td><td><code>presentAsSheet(on:) async</code></td><td>等到关闭；强制给窗口</td><td class="numeric">5</td></tr>
+      <tr><td><code>Tests/OnBoardingKitTests/*.swift</code></td><td><span class="tag tag-added">新增</span></td><td>四组 Swift 层测试</td><td>行为清单</td><td class="numeric">4、5</td></tr>
+      <tr><td><code>README.md</code></td><td><span class="tag tag-added">新增</span></td><td>英文说明</td><td>调用方文档</td><td class="numeric">6</td></tr>
+      <tr><td><code>Documentations/README.md</code>、<code>Evolutions/README.md</code></td><td><span class="tag tag-added">新增</span></td><td>索引</td><td>文档规则</td><td class="numeric">6</td></tr>
+      <tr><td><code>Documentations/Internal/DeclarationSources.md</code></td><td><span class="tag tag-added">新增</span></td><td>实现说明</td><td>维护者要知道声明从哪来、怎么核对新系统</td><td class="numeric">6</td></tr>
+      <tr><td><code>Documentations/Evolutions/0001-objective-c-declarations-and-swift-layer.md</code> / <code>.html</code></td><td><span class="tag tag-added">新增</span></td><td>本提案与网页版</td><td>提案制</td><td class="numeric">6</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="proposal">
+  <h2>提议方案</h2>
+  <ol>
+    <li><strong>包结构照 swift-skylight</strong>：<code>COnBoardingKit</code>（Objective-C 头文件加一个空的 <code>.m</code>）与 <code>OnBoardingKit</code>（Swift），两个都是 product；macOS 14；Swift 6 语言模式。</li>
+    <li><strong>头文件声明范围</strong>：<code>.tbd</code> 的 29 个类和 72 个常量；成员取 27.2 上存在的，不写实例变量、下划线方法、AppKit 方法的覆写，以及只服务于框架自身布局与缓存的属性和方法。</li>
+    <li><strong>类型</strong>：按反编译结果写全 nullability、集合元素类型与 block 签名；只凭选择子字面意思定的标 <code>[unverified]</code>。</li>
+    <li><strong>枚举</strong>：<code>OBTemplateLayoutStyle</code>、<code>OBTemplateType</code>、<code>OBBulletListSpacing</code>、<code>OBDeviceType</code>（<code>NS_ENUM</code>）与 <code>OBBundleInclusionOptions</code>（<code>NS_OPTIONS</code>）。名字由本包按行为起，并在注释里写明。</li>
+    <li><strong>可用性</strong>：晚于 14.0 引入的成员标 <code>API_AVAILABLE(macos(…))</code>。</li>
+    <li><strong>Swift 名写在头文件的宏里</strong>：常量去掉 <code>Identifier</code> 后缀；<code>OBPrivacyPresenter</code> 的工厂改成 <code>init?(splashFor:)</code> 一族；<code>OBPrivacyLinkController</code> 基类的构造器和拼错的工厂方法在 Swift 里不可用。</li>
+    <li><strong>Swift 层四块</strong>：功能列表的 <code>Item</code> 与 builder；模板视图带默认参数和 <code>features:</code> builder 的构造器；容器按钮的 <code>ButtonRole</code>、<code>Button</code>、<code>button(for:)</code>、<code>setAction(for:_:)</code>；隐私页的 <code>presentAsSheet(on:) async</code>。</li>
+    <li><strong>测试</strong>：一组测试在运行时读取头文件，逐个核对类、方法与属性存取器；一组测试覆盖 Swift 层。测试不把窗口放到屏幕上。</li>
+  </ol>
+  <h3>非目标</h3>
+  <ul>
+    <li>不覆盖 iOS 版 OnBoardingKit（<code>OBWelcomeController</code> 等，Catalyst App 用的那套），也不覆盖 <code>Welcome.framework</code>。</li>
+    <li>不声明 <code>OBProcessNameForPID</code>、<code>_OBLoggingEnabled</code>、<code>_OBLoggingFacility</code>：它们是框架内部的日志与进程工具。</li>
+    <li>不包装 <code>NSSymbolEffect</code> 那组接口：Swift 造不出 <code>NSSymbolEffect</code>，包装了也没法用。</li>
+    <li>不做 SwiftUI 包装：选定的范围是「绑定加便利接口」。</li>
+    <li>不在 macOS 27.2 之外的系统上实测行为；旧系统只核对成员是否存在（来自元数据）。</li>
+    <li>不建 GitHub 远端、不推送。</li>
+  </ul>
+</section>
+
+<section id="design">
+  <h2>详细设计</h2>
+  <details open>
+    <summary>头文件：枚举与隐私页的 Swift 名</summary>
+    <div class="details-body">
+<pre><code>typedef NS_ENUM(NSInteger, OBTemplateLayoutStyle) {
+    OBTemplateLayoutStyleDefault = 0,
+    OBTemplateLayoutStyleLargeContent = 1,
+    OBTemplateLayoutStyleHeadline = 2,
+    OBTemplateLayoutStyleTopContentWithBackground = 3,
+    OBTemplateLayoutStyleAnimation = 4,
+    OBTemplateLayoutStyleTopContent = 5,
+};
+typedef NS_ENUM(NSUInteger, OBTemplateType) { OBTemplateTypeUnspecified, OBTemplateTypePrivacy, OBTemplateTypeStandard, OBTemplateTypeCentered };
+typedef NS_ENUM(NSInteger, OBBulletListSpacing) { OBBulletListSpacingDefault, OBBulletListSpacingLarge, OBBulletListSpacingCompact };
+typedef NS_ENUM(NSUInteger, OBDeviceType) { OBDeviceTypeCurrent, OBDeviceTypeIPhone, /* … */ OBDeviceTypeHomeAccessory };
+typedef NS_OPTIONS(NSUInteger, OBBundleInclusionOptions) { /* 1 &lt;&lt; 0 … 1 &lt;&lt; 4 */ };
+
++ (nullable instancetype)presenterForPrivacySplashWithIdentifier:(OBPrivacyIdentifier)identifier NS_SWIFT_NAME(init(splashFor:));
++ (nullable instancetype)presenterForPrivacyUnifiedAboutWithIdentifiers:(NSArray&lt;OBPrivacyIdentifier&gt; *)identifiers NS_SWIFT_NAME(init(unifiedAboutFor:));
+extern OBPrivacyIdentifier const OBPrivacyAppStoreIdentifier NS_SWIFT_NAME(appStore);</code></pre>
+    </div>
+  </details>
+  <details open>
+    <summary>Swift 层</summary>
+    <div class="details-body">
+<pre><code>extension OBTemplatePartBulletList {
+    public enum ItemImage: Sendable { case systemImage(String), image(NSImage) }
+    public struct Item: Sendable {
+        public var title: String?
+        public var description: String?
+        public var image: ItemImage?
+        public var tintColor: NSColor?
+        public var status: String?
+        public var subitems: [Item]
+        public init(_ title: String? = nil, description: String? = nil, systemImage: String, tintColor: NSColor? = nil, status: String? = nil, @ItemBuilder subitems: () -&gt; [Item] = { [] })
+        public init(_ title: String? = nil, description: String? = nil, image: NSImage, tintColor: NSColor? = nil, status: String? = nil, @ItemBuilder subitems: () -&gt; [Item] = { [] })
+        public init(_ title: String? = nil, description: String? = nil, status: String? = nil, @ItemBuilder subitems: () -&gt; [Item] = { [] })
+    }
+    @resultBuilder public enum ItemBuilder { /* buildExpression, buildBlock, buildOptional, buildEither, buildArray, buildLimitedAvailability */ }
+    public convenience init(@ItemBuilder items: () -&gt; [Item])
+    public func addItem(_ item: Item)
+    public func addItems(_ items: [Item])
+    public func addItems(@ItemBuilder _ items: () -&gt; [Item])
+}
+
+extension OBTemplateView {
+    public convenience init(title: String, bodyText: String? = nil, systemImage: String? = nil, layoutStyle: OBTemplateLayoutStyle = .default, contentArea: NSView? = nil)
+    public convenience init(title: String, bodyText: String? = nil, systemImage: String? = nil, layoutStyle: OBTemplateLayoutStyle = .default, @OBTemplatePartBulletList.ItemBuilder features: () -&gt; [OBTemplatePartBulletList.Item])
+    public var bulletList: OBTemplatePartBulletList? { get }
+}
+
+extension OBTemplateContainerViewController {
+    public enum ButtonRole: Sendable { case primary, secondary, cancel }
+    public struct Button {
+        public var title: String
+        public var action: @MainActor (OBTemplateContainerViewController) -&gt; Void
+        public init(_ title: String, action: @escaping @MainActor (OBTemplateContainerViewController) -&gt; Void)
+    }
+    public convenience init(templateView: OBTemplateView, primaryButton: Button, secondaryButton: Button? = nil, cancelButton: Button? = nil)
+    public func button(for role: ButtonRole) -&gt; NSButton?
+    public func setAction(for role: ButtonRole, _ action: @escaping @MainActor (OBTemplateContainerViewController) -&gt; Void)
+}
+
+extension OBPrivacyPresenter {
+    public func presentAsSheet(on window: NSWindow) async
+}</code></pre>
+      <ul>
+        <li><strong><code>Item</code> 的三个构造器按图片来源分</strong>（SF Symbol、自己的图片、无图），与 SwiftUI <code>Label</code> 的 <code>systemImage:</code> / <code>image:</code> 一致；有子项就成为可展开行。<code>addItem(_:)</code> 只在子项非空时才走 <code>addExpandableItem…</code>（框架收到空数组时什么都不加）。</li>
+        <li><strong>按钮的闭包收控制器作参数</strong>：关闭 sheet 时不必捕获控制器，避免循环引用。target 以关联对象挂在按钮上，因为 <code>NSControl.target</code> 是弱引用。</li>
+        <li><strong><code>presentAsSheet(on:)</code></strong> 暂时替换 <code>dismissHandler</code>，sheet 结束时把原来的放回去、调用它，再恢复 <code>await</code>。</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section id="research">
+  <h2>调研</h2>
+  <details>
+    <summary>动机与前期调研</summary>
+    <div class="details-body">
+      <h4>动机</h4>
+      <ul>
+        <li><strong>Apple 自己的欢迎页和 “What's New” 页用的就是这个框架。</strong>App Store、Freeform、Shortcuts 直接引用 <code>OBTemplateView</code>、<code>OBTemplatePartBulletList</code>、<code>OBTemplateContainerViewController</code>；Mail、Music、TV、Photos、Books 经 <code>OBPrivacyPresenter</code> 弹隐私页；Catalyst App 用的是 iOS 版的 <code>OBWelcomeController</code>。</li>
+        <li><strong>SDK 里没有头文件。</strong>只有 <code>OnBoardingKit.tbd</code>；运行时元数据把对象参数记成 <code>id</code>、block 不带签名。</li>
+        <li><strong>框架本身很稳定。</strong>51 个版本（11.0 → 27.0）里 1246 个成员有 848 个从未变过，删掉的只有 24 个，多是内部辅助方法。</li>
+        <li><strong>直接调用有几处会踩空。</strong>按钮没有 target 和 action；隐私页没有 <code>presentingWindow</code> 就什么也不显示；模板视图在第一次绘制前没有子视图；<code>fade…</code> 的回调传 nil 会崩溃。</li>
+      </ul>
+      <h4>前期调研</h4>
+      <ul>
+        <li><strong>导出面</strong>：29 个类；72 个隐私标识常量；<code>OBProcessNameForPID</code> 与两个日志符号；一个 Swift 符号 <code>NSImage.disclosureChevronImage(expandedState:)</code>。没有 <code>allowable-clients</code>。</li>
+        <li><strong>成员与版本</strong>：演进接口文件给出 11.0–27.0 的存在位图；本机 27.2.1 运行时又少了三个：<code>-[OBBundleManager orderedPrivacyBundlesWithPrivacyPaneBundle:]</code> 与列表项的两个四参数构造器。</li>
+        <li><strong>类型与行为</strong>：在 27.2 归档 cache 上建了 <code>OnBoardingKit.i64</code>，逐个反编译并对照汇编。所有 block 都是 <code>void (^)(void)</code>；整数参数的取值见各枚举；容器的指定构造器是 first/second/link 那个，first = primary、second = cancel、link = secondary，按钮不接 target/action；<code>OBPrivacyLinkController</code> 的工厂返回 <code>_macOS</code> 子类；<code>OBPrivacyPresenter.present</code> 没有窗口时只记日志返回。</li>
+        <li><strong>实测</strong>：<code>OBTemplateView</code> 只在 <code>viewWillDraw</code> 之后才有子视图；可展开行的子项在 <code>expanded = YES</code> 之后才加进 <code>expandableStack</code>。</li>
+        <li><strong>Swift 侧</strong>：<code>NSSymbolEffect</code> 标了 <code>NS_REFINED_FOR_SWIFT</code>；类型化常量不加 <code>NS_SWIFT_NAME</code> 时带着 <code>Identifier</code> 后缀导入。</li>
+        <li><strong>先例</strong>：swift-skylight 的 C target 加 <code>unsafeFlags(["-F/System/Library/PrivateFrameworks"])</code> 加 <code>@_exported import</code>；tools 6.2 起依赖带 unsafe flags 的包不再被拒。</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section id="alternatives">
+  <h2>替代方案</h2>
+  <details>
+    <summary>七条被否的路径</summary>
+    <div class="details-body">
+      <ul>
+        <li><strong>运行时查找代替链接。</strong>否：<code>.tbd</code> 导出了全部 29 个类，直接链接能得到编译期的类型检查。</li>
+        <li><strong>改名写进 apinotes。</strong>否：头文件是本包自己的，宏写在声明上读一处就够。</li>
+        <li><strong>一个 <code>OBTemplateView</code> 构造器包下四种来源。</strong>否：动画那条构造器自己决定 <code>layoutStyle</code>，合进去会让参数被悄悄忽略。</li>
+        <li><strong>最低系统 macOS 26。</strong>否：用户选了 14；旧构造器在 26 起照样能用，只需在取按钮时分版本。</li>
+        <li><strong><code>present() async</code> 与同步版同名。</strong>否：同名会让 async 上下文里的同步调用被换掉；等的是「关闭」不是「显示」。</li>
+        <li><strong>按钮闭包写成 <code>() -&gt; Void</code>。</strong>否：最常见的动作是关掉 sheet，会逼调用方捕获控制器形成循环引用。</li>
+        <li><strong>Swift 模块另起名。</strong>否：框架自身的 Swift 部分只有一个私有类和一个 <code>NSImage</code> 扩展，本包不定义同名符号；照 swift-skylight 用框架名。</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section id="impact">
+  <h2>影响</h2>
+  <ul>
+    <li><strong>源码兼容性</strong>：纯新增，新仓库没有既有调用方。</li>
+    <li><strong>ABI</strong>：不适用，本库以 SPM 源码分发。对系统框架：声明与框架的选择子、参数位宽一致，换成枚举不改变调用约定。</li>
+    <li><strong>下游</strong>：暂无依赖方。</li>
+    <li><strong>文档</strong>：README（英文）、实现说明、本提案及网页版；没有示例 App。</li>
+    <li><strong>演进</strong>：系统删掉成员时 <code>DeclarationPresenceTests</code> 变红，再标 <code>API_OBSOLETED</code> 或删除；本包 Swift API 改名时保留旧名并标 <code>renamed:</code>；第一次打 tag 从 0.1.0 起。</li>
+  </ul>
+</section>
+
+<section id="steps">
+  <h2>落地步骤</h2>
+  <ol>
+    <li><strong>骨架</strong>：<code>swift build</code> 成功，链接得到 <code>OnBoardingKit.framework</code>。</li>
+    <li><strong>头文件主体与核对测试</strong>：<code>Every declared class exists</code>；<code>Every declared method and property accessor exists</code>；加回 27.2 已删的 <code>makeDivider</code> 时测试失败。</li>
+    <li><strong>按反编译结果补类型、枚举与 Swift 名</strong>：<code>swift-synthesize-interface</code> 无警告，常量导入为 <code>.appStore</code>，工厂导入为 <code>init?(splashFor:)</code>。</li>
+    <li><strong>功能列表 builder</strong>：顺序、条件与循环、状态行、可展开行、<code>addItems</code> 追加。</li>
+    <li><strong>模板视图、容器按钮、隐私页</strong>：便利构造器、功能列表成为内容区、在容器里的层级；按钮标题与闭包、快捷键、替换动作、不持有控制器；<code>presentAsSheet</code> 关闭后返回并恢复原来的回调；工厂找得到系统的隐私页。</li>
+    <li><strong>文档</strong>：README、实现说明、索引、本提案与网页版。</li>
+  </ol>
+  <p>收尾判断：写了实现说明（声明来源、取舍规则、Swift 层依赖的框架行为）；调用方契约在 README 与头文件注释里，不另写使用指南；没有项目特有的新术语，不建术语表。</p>
+</section>
+
+<section id="log">
+  <h2>决策日志</h2>
+  <details>
+    <summary>7 条，最近一条：Implemented</summary>
+    <div class="details-body">
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>日期</th><th>变更</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td class="numeric">2026-11-23</td><td>Created as Draft</td><td>用户想在自己的 App 里用系统 What's New 页同款的框架，要求新建包、声明 <code>.tbd</code> 导出的全部类并提供 Swift 便利接口</td></tr>
+          <tr><td class="numeric">2026-11-23</td><td>范围：绑定加便利接口</td><td>用户在「只做薄绑定 / 绑定加便利接口 / 再加 What's New 组装层与 SwiftUI」中选了中间一档</td></tr>
+          <tr><td class="numeric">2026-11-23</td><td>部署目标 macOS 14</td><td>用户选定，与 AppKitPlus、swift-skylight 一致；26 起的新按钮接口标可用性，Swift 层按系统版本取按钮</td></tr>
+          <tr><td class="numeric">2026-11-23</td><td>只声明 27.2 上存在的成员</td><td>本机运行时核对发现 27.2 删了三个 27.0 还有的成员；加一组运行时读取头文件的核对测试防止再漂移</td></tr>
+          <tr><td class="numeric">2026-11-23</td><td>枚举名由本包起</td><td>二进制里没有这些整数的名字，按 27.2 的行为命名并写明</td></tr>
+          <tr><td class="numeric">2026-11-23</td><td>In Progress</td><td>代码、测试与文档已在本地完成，全部测试通过，尚未提交</td></tr>
+          <tr><td class="numeric">2026-11-23</td><td>Implemented</td><td>用户选择只在本地提交：代码、测试与文档作为新仓库的第一个提交进入 <code>main</code>，编号 0001；不建远端</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </details>
+</section>
+
+</main>
+</div>
+</body>
+</html>

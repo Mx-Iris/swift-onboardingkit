@@ -1,0 +1,4 @@
+module COnBoardingKit {
+    header "OnBoardingKitPrivateAPI.h"
+    export *
+}
