@@ -57,6 +57,46 @@ struct TemplateContainerSizingTests {
         #expect(controller.preferredContentSize == OBTemplateContainerViewController.sheetSize())
     }
 
+    @Test("A template of the standard type becomes centered, and so does its bullet list")
+    func standardTemplateBecomesCentered() throws {
+        let controller = Self.makeController()
+        let templateView = try #require(controller.templateView)
+
+        #expect(templateView.templateType == .centered)
+        #expect(templateView.bulletList?.templateType == .centered)
+    }
+
+    @Test("A template given another type keeps it")
+    func chosenTemplateTypeIsKept() throws {
+        let templateView = OBTemplateView(title: "Data & Privacy", systemImage: "hand.raised")
+        templateView.templateType = .privacy
+
+        let controller = OBTemplateContainerViewController(templateView: templateView, primaryButton: .init("OK") { _ in })
+
+        #expect(try #require(controller.templateView).templateType == .privacy)
+    }
+
+    /// The standard type's 175-point side margins leave the text of a 482-point sheet a column about 130 points wide.
+    /// `viewWillDraw()` stands in for the template's first draw, so nothing is put on screen.
+    @Test("The text spans most of the sheet")
+    func textSpansSheetWidth() throws {
+        let controller = Self.makeController()
+        let window = NSWindow(contentViewController: controller)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let templateView = try #require(controller.templateView)
+
+        window.layoutIfNeeded()
+        templateView.viewWillDraw()
+        window.layoutIfNeeded()
+
+        let shortestAcceptableWidth: CGFloat = OBTemplateContainerViewController.sheetSize().width * 0.6
+        let titleWidth = try #require(templateView.titleView).frame.width
+        let listWidth = try #require(templateView.bulletList).frame.width
+        #expect(titleWidth > shortestAcceptableWidth)
+        #expect(listWidth > shortestAcceptableWidth)
+    }
+
     /// The template's initializers give it a zero frame; translating its autoresizing mask, it holds itself, the
     /// container and the window at 0 x 0.
     @Test("A window made from the controller is the sheet size, and the template fills it")

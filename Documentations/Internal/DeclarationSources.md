@@ -63,6 +63,7 @@ Tests/
 - **`OBTemplateView` 在第一次绘制前才搭子视图。** 创建、放进窗口、`layoutSubtreeIfNeeded`、窗口 `displayIfNeeded`（窗口没显示时）都不会触发；只有 `viewWillDraw` 会。测试里直接调 `viewWillDraw()` 代替第一次绘制，不必把窗口放到屏幕上。
 - **模板视图会把容器钉成 0 × 0。** `OBTemplateView` 的构造器给它零尺寸，`translatesAutoresizingMaskIntoConstraints` 保持默认的 `true`；`-[OBTemplateContainerViewController setTemplateView:]` 又用 `_completelyFillWithView:` 以约束把它贴满模板区。于是 AppKit 按零尺寸生成 `width == 0`、`height == 0` 两条必需约束，容器、用它建的窗口和 sheet 都被压成 0 × 0，什么尺寸约束都顶不过（2026-11-24 在 RuntimeViewer 里撞到，用 `constraintsAffectingLayout(for:)` 查出）。Swift 便利构造器因此先关掉这个开关再交给容器。
 - **容器自己不定尺寸。** `-[OBTemplateContainerViewController loadView]` 用 `NSZeroRect` 建视图，只约束按钮栏的高度（63），宽度没有任何约束；模板第一次绘制前也没有子视图撑开它。只关开关不给尺寸，窗口约 300 宽、0 高。框架自己的隐私页窗口 `OBPrivacyWindow` 覆写 `setFrame:display:`，把尺寸强制成 `+[OBStyle sheetSizeForParentWindowSize:]`：宽 482，高取父窗口高度的 88%、限制在 546 到 600 之间，父窗口尺寸为零时 546。15.5 与 27.2 的这组数相同。`OBStyle` 不在 `.tbd` 里，所以 `sheetSize(forParentWindowSize:)` 照抄公式，便利构造器把无父窗口的尺寸设为 `preferredContentSize`（AppKit 换成两条优先级 501 的约束，窗口与 sheet 都按它开）。
+- **模板的左右边距按类型定。** `-[OBTemplateView outerContentMargins]`：`standard` 与 `unspecified` 每边 175pt（开 `needsExtraWideContent` 或 `needsExtraWideContentAreaOnly` 时 85），`privacy` 与 `centered` 每边 68。构造器给的是 `standard`，放进 482 宽的 sheet，标题只剩 136pt 宽（2026-11-24 在 RuntimeViewer 里撞到）。列表的行宽另由 `-[OBTemplatePartBulletList setBulletListSpacing:]` 定：`centered` 固定 344，其余按间距档位取 382 / 420（加宽 562 / 600）；`privacy` 的 382 比 sheet 留下的 346 还宽，它的上边距也按窗口高度的 12% 算，是隐私页的版式。`-[OBTemplateView setTemplateType:]` 只存值、不传给列表，类型在第一次绘制（`layoutSubviews`）时才读。Swift 容器便利构造器因此把仍是 `standard` / `unspecified` 的模板与它的列表改成 `centered`，调用方另选的类型不动。
 - **`layoutStyle` 只在创建时读一次。** setter 只存值，`commonInit` 才读，所以 Swift 便利构造器把它作为构造参数。
 - **可展开行的子项在展开时才加进 `expandableStack`**，之前存在内部的 `cells` 里；`addExpandableItem…` 收到空数组时只记错误日志、什么都不加，所以 `addItem(_:)` 只在有子项时才走这条路。
 - **`fadeTitle/BodyToAlpha:duration:completionHandler:` 的回调不判空就调用**（`0x1C388213C`），传 nil 会崩溃，所以头文件把它标成非空。
@@ -85,7 +86,7 @@ Tests/
 ## 验证
 
 - `Tests/COnBoardingKitTests/DeclarationPresenceTests.swift`：测试时读取头文件（`HeaderDeclarationParser`），对每个类查 `NSClassFromString`，对每个方法和属性的 getter / setter 查 `instancesRespondToSelector:` 或类方法的 `respondsToSelector:`；`API_AVAILABLE` 高于运行系统的跳过。加回一个 27.2 已删的方法（`makeDivider`）时它变红，已实测。
-- `Tests/OnBoardingKitTests/`：列表 builder 的行数、顺序、条件与循环、状态行、可展开行；容器按钮的标题、闭包、快捷键、替换动作、不持有控制器；`presentAsSheet(on:)` 设窗口、只调一次 `present`、关闭后返回并恢复原来的 `dismissHandler`（用一个立即结束 sheet 的子类代替真 sheet）；模板视图的便利构造器、功能列表、在容器里的层级；容器的尺寸公式，以及用便利构造器建的窗口和 sheet 是 sheet 尺寸、模板铺满（窗口与 sheet 都不放上屏幕）；隐私标识对得上系统的隐私包。
+- `Tests/OnBoardingKitTests/`：列表 builder 的行数、顺序、条件与循环、状态行、可展开行；容器按钮的标题、闭包、快捷键、替换动作、不持有控制器；`presentAsSheet(on:)` 设窗口、只调一次 `present`、关闭后返回并恢复原来的 `dismissHandler`（用一个立即结束 sheet 的子类代替真 sheet）；模板视图的便利构造器、功能列表、在容器里的层级；容器的尺寸公式，以及用便利构造器建的窗口和 sheet 是 sheet 尺寸、模板铺满（窗口与 sheet 都不放上屏幕）；标准类型改成居中、另选的类型保留、正文宽度超过 sheet 的六成；隐私标识对得上系统的隐私包。
 - 所有视图都在屏幕外创建，测试不弹窗口。
 
 ### 系统更新后怎样核对

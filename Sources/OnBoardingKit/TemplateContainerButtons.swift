@@ -39,6 +39,11 @@ extension OBTemplateContainerViewController {
     /// that size. For a sheet whose height follows its window's, set `preferredContentSize` to
     /// `sheetSize(forParentWindowSize: window.frame.size)` before presenting it.
     ///
+    /// A template still of the type its initializers give it, `.standard`, or of `.unspecified`, becomes
+    /// `.centered`, and so does its bullet list: the standard type's 175-point side margins are meant for a whole
+    /// window, and leave the text of a 482-point sheet a column about 130 points wide. A template given another type
+    /// keeps it. The template reads its type when it first draws, so a type set after this initializer still counts.
+    ///
     /// ```swift
     /// let controller = OBTemplateContainerViewController(
     ///     templateView: templateView,
@@ -56,6 +61,12 @@ extension OBTemplateContainerViewController {
         // container pins its edges with constraints: the template would hold itself, the container and any window
         // made from it at 0 x 0 with required constraints.
         templateView.translatesAutoresizingMaskIntoConstraints = false
+        // The centered type has 68-point side margins and keeps its bullet list's rows 344 points wide, the width a
+        // 482-point sheet leaves. The template does not pass its type on to its bullet list.
+        if templateView.templateType == .standard || templateView.templateType == .unspecified {
+            templateView.templateType = .centered
+            templateView.bulletList?.templateType = .centered
+        }
         // The first/second/link initializer exists on every supported macOS and maps onto primary/cancel/secondary
         // from macOS 26 on.
         self.init(
