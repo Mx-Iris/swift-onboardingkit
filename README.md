@@ -58,6 +58,12 @@ window.contentViewController?.presentAsSheet(controller)
 
 The tray holds a primary, a secondary and a cancel button. Before macOS 26 the framework draws them as a first button, a link-styled button and a second button; `button(for:)` returns the right one on either. The primary button answers Return and the cancel button Escape.
 
+The controller opens at the size the framework gives its own sheets: 482 × 546 points. For a sheet whose height follows its window's, as the framework's own sheets do (88 % of the window, 546 to 600 points), ask for that size before presenting it:
+
+```swift
+controller.preferredContentSize = OBTemplateContainerViewController.sheetSize(forParentWindowSize: window.frame.size)
+```
+
 ### A privacy page
 
 ```swift
@@ -86,6 +92,7 @@ templateView.contentArea = bulletList;
 - **The framework is linked weakly.** On a system without it the app launches and every class of it is `nil`, so creating one would crash. Check first, for example with `NSClassFromString("OBTemplateContainerViewController") != nil`, and skip the page when it is missing.
 - **The tests check the header against the running system.** `swift test` reads the header and fails on any declared class, method or property accessor the running macOS does not have, so a removal shows up as a failing test rather than an unrecognized-selector crash.
 - **`OBTemplateView` builds its subviews the first time it draws.** Until then `subviews` is empty and `contentArea` is not in the hierarchy. Set its properties at any time before that.
+- **The framework's container sets no size, and its template would hold it at 0 × 0.** The template is created with a zero frame and translates its autoresizing mask, while the container pins its edges with constraints; the container's own view starts at zero. The Swift initializer `init(templateView:primaryButton:secondaryButton:cancelButton:)` turns the translation off and sets `preferredContentSize`. Using an Objective-C initializer or setting `templateView` yourself, do both, or the window or sheet opens at 0 × 0 and never draws.
 - **`layoutStyle` is read only while the template view is created.** Pass it to the initializer.
 - **`OBPrivacyPresenter` needs a window.** Without `presentingWindow`, `present()` shows nothing and never calls `dismissHandler`; `presentAsSheet(on:)` takes the window as an argument for that reason.
 - **The enum names are this package's.** The framework passes plain integers and its binary carries no names for them; each value is named and documented for what macOS 27.2 does with it.

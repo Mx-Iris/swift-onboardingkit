@@ -33,6 +33,12 @@ extension OBTemplateContainerViewController {
     /// A controller showing `templateView` above a tray with a primary button and, optionally, a secondary and a
     /// cancel button, each calling its action when clicked.
     ///
+    /// The template is laid out with constraints (its `translatesAutoresizingMaskIntoConstraints` is turned off), and
+    /// the controller's `preferredContentSize` is the size the framework gives its own sheets with no parent window,
+    /// ``sheetSize(forParentWindowSize:)``. A window made from the controller, or a sheet it is presented as, opens at
+    /// that size. For a sheet whose height follows its window's, set `preferredContentSize` to
+    /// `sheetSize(forParentWindowSize: window.frame.size)` before presenting it.
+    ///
     /// ```swift
     /// let controller = OBTemplateContainerViewController(
     ///     templateView: templateView,
@@ -46,6 +52,10 @@ extension OBTemplateContainerViewController {
         secondaryButton: Button? = nil,
         cancelButton: Button? = nil
     ) {
+        // The template's initializers give it a zero frame and leave it translating its autoresizing mask, while the
+        // container pins its edges with constraints: the template would hold itself, the container and any window
+        // made from it at 0 x 0 with required constraints.
+        templateView.translatesAutoresizingMaskIntoConstraints = false
         // The first/second/link initializer exists on every supported macOS and maps onto primary/cancel/secondary
         // from macOS 26 on.
         self.init(
@@ -54,6 +64,9 @@ extension OBTemplateContainerViewController {
             secondButtonTitle: cancelButton?.title,
             linkButtonTitle: secondaryButton?.title
         )
+        // The container's view starts at zero and nothing in it has a width; the template builds its subviews only
+        // when it first draws.
+        preferredContentSize = Self.sheetSize()
         setAction(for: .primary, primaryButton.action)
         if let secondaryButton {
             setAction(for: .secondary, secondaryButton.action)

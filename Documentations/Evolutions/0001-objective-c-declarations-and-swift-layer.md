@@ -290,3 +290,4 @@ README（英文）、实现说明、本提案及网页版。没有示例 App：s
 | 2026-11-23 | In Progress | 代码、测试与文档已在本地完成，全部测试通过，尚未提交 |
 | 2026-11-23 | Implemented | 用户选择只在本地提交：代码、测试与文档作为新仓库的第一个提交进入 `main`，编号 0001；不建远端 |
 | 2026-11-24 | 改为弱链接，公开并发布 0.1.0 | 第一个依赖方 RuntimeViewer（提案 `draft-onboarding-pages`）是公开仓库，它的 CI 与贡献者解析不了私有依赖，用户决定把本仓库改为公开、打 `0.1.0`。同批把 `OnBoardingKit.framework` 改成弱链接（`-Xlinker -weak_framework`，去掉 `.linkedFramework`）：强链接时，框架在某个系统上消失会让链接本包的 App 根本启动不了；弱链接后 App 照常启动、类为 `nil`，由调用方先查再用（README「Things to know」）。两个测试包实测为 `LC_LOAD_WEAK_DYLIB`，全部测试通过 |
+| 2026-11-24 | 容器自己定好尺寸，发布 0.1.1 | RuntimeViewer 接入后弹出的页面是 0 × 0：模板视图零尺寸创建、没关 `translatesAutoresizingMaskIntoConstraints`，被容器的贴边约束连同窗口一起钉成 0 × 0；容器自己也不定尺寸。README 里的 `presentAsSheet` 示例同样如此。Swift 便利构造器改为先关掉模板视图的这个开关，并把 `preferredContentSize` 设成框架自家 sheet 的尺寸；新增 `sheetSize(forParentWindowSize:)`，照抄框架未导出的 `+[OBStyle sheetSizeForParentWindowSize:]`（15.5 与 27.2 相同）。结论记进实现说明「Swift 层依赖的框架行为」。用户决定改库并发 `0.1.1`。 |
