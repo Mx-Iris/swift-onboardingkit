@@ -22,7 +22,7 @@ The package has two modules:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Mx-Iris/swift-onboardingkit.git", from: "0.1.0"),
+    .package(url: "https://github.com/Mx-Iris/swift-onboardingkit.git", from: "0.2.0"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: [.product(name: "OnBoardingKit", package: "swift-onboardingkit")]),

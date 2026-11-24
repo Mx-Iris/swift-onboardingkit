@@ -7,4 +7,4 @@
 | 编号 | 标题 | 状态 |
 |---|---|---|
 | 0001 | [声明 OnBoardingKit 导出的类，并给 Swift 一层便利接口](0001-objective-c-declarations-and-swift-layer.md) | Implemented |
-| draft | [用值描述一页，由容器组装](draft-template-page.md) | In Progress |
+| 0002 | [用值描述一页，由容器组装](0002-template-page.md) | Implemented |

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Draft - 用值描述一页，由容器组装</title>
+<title>0002 - 用值描述一页，由容器组装</title>
 <style>
 /* Evolution proposal page, shared style (style A, "Apple documentation").
    Copy this whole <style> block verbatim. Page-specific rules, if any, go only
@@ -160,13 +160,13 @@ details[open] > summary { border-bottom: 1px solid var(--separator); }
 <div class="page">
 
 <header class="doc-header">
-  <p class="eyebrow"><span class="crumb">swift-onboardingkit</span><span class="crumb">Evolutions</span><span class="crumb">draft</span></p>
-  <h1><span class="proposal-number">Draft</span> 用值描述一页，由容器组装</h1>
+  <p class="eyebrow"><span class="crumb">swift-onboardingkit</span><span class="crumb">Evolutions</span><span class="crumb">0002</span></p>
+  <h1><span class="proposal-number">0002</span> 用值描述一页，由容器组装</h1>
   <dl class="meta">
-    <div><dt>状态</dt><dd><span class="status status-in-progress">In Progress</span></dd></div>
+    <div><dt>状态</dt><dd><span class="status status-implemented">Implemented</span></dd></div>
     <div><dt>最后更新</dt><dd>2026-11-24</dd></div>
     <div><dt>项目类型</dt><dd>库</dd></div>
-    <div><dt>原文</dt><dd><code>draft-template-page.md</code></dd></div>
+    <div><dt>原文</dt><dd><code>0002-template-page.md</code></dd></div>
   </dl>
 </header>
 
@@ -195,10 +195,9 @@ details[open] > summary { border-bottom: 1px solid var(--separator); }
 <section id="decide">
   <h2>要你定</h2>
   <div class="callout">
-    <p class="callout-title">发布前</p>
+    <p class="callout-title">已定</p>
     <ol>
-      <li>默认版式定哪个：暂定 <code>.centered</code>（App Store 的做法），在 demo 里调过再定。</li>
-      <li>什么时候打 <code>0.2.0</code>，RuntimeViewer 随后改用它。</li>
+      <li>默认版式 <code>.centered</code>（App Store 的做法），随 <code>0.2.0</code> 发布，RuntimeViewer 改用页面值。</li>
     </ol>
   </div>
 </section>
@@ -255,7 +254,7 @@ details[open] > summary { border-bottom: 1px solid var(--separator); }
       <tr><td><code>Tests/OnBoardingKitTests/TemplatePageTests.swift</code></td><td><span class="tag tag-added">新增</span></td><td>文字、功能行、四种版式、尺寸、窗口尺寸与模板铺满</td><td>行为清单</td><td class="numeric">1</td></tr>
       <tr><td><code>README.md</code></td><td><span class="tag tag-changed">修改</span></td><td>用法以页面值为主，原写法挪到「Building the template yourself」，加版式表</td><td>公开用法</td><td class="numeric">2</td></tr>
       <tr><td><code>Documentations/Internal/DeclarationSources.md</code></td><td><span class="tag tag-changed">修改</span></td><td>文件树加一行；记「组装后要设回版式、间距在加行前设」</td><td>维护者会踩</td><td class="numeric">2</td></tr>
-      <tr><td><code>Documentations/Evolutions/draft-template-page.md</code>（与 <code>.html</code>）、索引</td><td><span class="tag tag-added">新增</span></td><td>本提案与索引</td><td>留档</td><td class="numeric">2</td></tr>
+      <tr><td><code>Documentations/Evolutions/0002-template-page.md</code>（与 <code>.html</code>）、索引</td><td><span class="tag tag-added">新增</span></td><td>本提案与索引</td><td>留档</td><td class="numeric">2</td></tr>
     </tbody>
   </table>
   </div>
@@ -345,14 +344,14 @@ details[open] > summary { border-bottom: 1px solid var(--separator); }
   <ol>
     <li>✅ <strong>页面值与组装</strong>：文字、功能行、无功能行、四种版式、尺寸、窗口尺寸与模板铺满六组测试。</li>
     <li>✅ <strong>文档</strong>：README、实现说明、本提案与索引。</li>
-    <li><strong>发布</strong>：用户看过样式、定下默认版式后打 <code>0.2.0</code>，RuntimeViewer 再改用它。</li>
+    <li>✅ <strong>发布</strong>：打 <code>0.2.0</code>，RuntimeViewer 改用它。</li>
   </ol>
 </section>
 
 <section id="log">
   <h2>决策日志</h2>
   <details>
-    <summary>2 条，最近一条：第 1、2 步完成</summary>
+    <summary>3 条，最近一条：Implemented，发布 0.2.0</summary>
     <div class="details-body">
       <div class="table-wrap">
       <table>
@@ -360,6 +359,7 @@ details[open] > summary { border-bottom: 1px solid var(--separator); }
         <tbody>
           <tr><td class="numeric">2026-11-24</td><td>Created as In Progress</td><td>RuntimeViewer 的引导页三次因视图、控制器属性没设对而难看。用户用 demo 比较样式后，要求把组装页面的那部分搬进本库：封装成结构化数据，不暴露视图与控制器的属性，最后组装成控制器。按用户的直接要求实现，提案随实现一起写。</td></tr>
           <tr><td class="numeric">2026-11-24</td><td>第 1、2 步完成</td><td>Ultra 上 36 个测试全过；去掉组装后设回版式的几行时，版式那组测试变红。demo 已改为走 <code>OBTemplatePage</code>。默认版式暂定 <code>.centered</code>，等用户在 demo 里调过再定。</td></tr>
+          <tr><td class="numeric">2026-11-24</td><td>Implemented，发布 0.2.0</td><td>用户选定 App Store 的样式，默认版式维持 <code>.centered</code>。连同未单独发布的「标准类型改成居中」一起打 <code>0.2.0</code>（新增公开类型，升次版本号）。RuntimeViewer 随即改用页面值。不另写配套文档，无新术语。</td></tr>
         </tbody>
       </table>
       </div>

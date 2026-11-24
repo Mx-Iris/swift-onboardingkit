@@ -1,12 +1,12 @@
-# Draft - 用值描述一页，由容器组装
+# 0002 - 用值描述一页，由容器组装
 
-- **状态**: In Progress
+- **状态**: Implemented
 - **作者**: JH
 - **创建日期**: 2026-11-24
 - **最后更新**: 2026-11-24
 - **所属愿景**: 无
 - **关联提案**: [0001 声明 OnBoardingKit 导出的类，并给 Swift 一层便利接口](0001-objective-c-declarations-and-swift-layer.md)
-- **实现分支 / PR**: 直接在 `main` 上提交，未推送
+- **实现分支 / PR**: 直接提交在 `main`，随 `0.2.0` 发布
 - **配套文档**: 不另写 —— 用法在 README，框架行为在 [实现说明](../Internal/DeclarationSources.md)「Swift 层依赖的框架行为」
 - **网页版**: 同目录同名的 `.html`
 
@@ -55,7 +55,7 @@ RuntimeViewer 接入本包做欢迎页与 What's New（RV 提案 `onboarding-pag
 | `Tests/OnBoardingKitTests/TemplatePageTests.swift` | 新增 | 文字、功能行、四种版式、尺寸、窗口尺寸与模板铺满 | 行为清单 | 1 |
 | `README.md` | 修改 | 用法以页面值为主，原写法挪到「Building the template yourself」，加版式表 | 公开用法 | 2 |
 | `Documentations/Internal/DeclarationSources.md` | 修改 | 文件树加一行；记「组装后要设回版式、间距在加行前设」 | 维护者会踩 | 2 |
-| `Documentations/Evolutions/draft-template-page.md`（与 `.html`）、`README.md` | 新增 / 修改 | 本提案与索引 | 留档 | 2 |
+| `Documentations/Evolutions/0002-template-page.md`（与 `.html`）、`README.md` | 新增 / 修改 | 本提案与索引 | 留档 | 2 |
 
 ## 架构图
 
@@ -160,7 +160,7 @@ README 的用法改为以页面值为主，原写法保留在「Building the tem
    - 行为：The controller asks for the page's size
    - 行为：A window made from the page is the page's size, and the template fills it
 2. ✅ **文档** —— 改动地图后三行
-3. **发布** —— 用户看过样式、定下默认版式后打 `0.2.0`，RuntimeViewer 再改用它
+3. ✅ **发布** —— 打 `0.2.0`，RuntimeViewer 改用它
 
 ## 决策日志
 
@@ -168,3 +168,4 @@ README 的用法改为以页面值为主，原写法保留在「Building the tem
 |------|------|------|
 | 2026-11-24 | Created as In Progress | RuntimeViewer 的引导页三次因视图、控制器属性没设对而难看。用户用 demo 比较样式后，要求把 demo 里组装页面的那部分搬进本库：封装成结构化数据，不暴露视图与控制器的属性，最后组装成控制器。按用户的直接要求实现，提案随实现一起写。 |
 | 2026-11-24 | 第 1、2 步完成 | Ultra 上 36 个测试全过；去掉组装后设回版式的几行时，版式那组测试变红（已有的按钮构造器会把标准类型改成居中）。demo 已改为走 `OBTemplatePage`。默认版式暂定 `.centered`（App Store 的做法），等用户在 demo 里调过再定。 |
+| 2026-11-24 | Implemented，发布 0.2.0 | 用户选定 App Store 的样式（居中版式、功能行用强调色、What's New 不放顶部图片），默认版式维持 `.centered`。连同尚未单独发布的「标准类型改成居中」（原计划 0.1.2）一起打 `0.2.0`：新增公开类型，按 semver 升次版本号。RuntimeViewer 随即改用页面值。配套文档：不另写，用法在 README、组装顺序在实现说明。新术语：无。 |
