@@ -9,7 +9,7 @@ App Store, Freeform and Shortcuts build their welcome and "What's New" sheets fr
 The package has two modules:
 
 - **`COnBoardingKit`** is one Objective-C header. It declares every class the SDK's `OnBoardingKit.tbd` exports (29 classes) and the 72 privacy identifiers, with the types recovered from the framework's code: typed collections, block signatures, nullability, and enums for the integers the framework takes. Each member carries the macOS release that introduced it; the deployment target is macOS 14.
-- **`OnBoardingKit`** re-exports `COnBoardingKit` and adds what Swift is missing: a result builder for the bullet list, closures in place of the container's target/action buttons, `async` presentation of privacy pages, and initializers with default arguments.
+- **`OnBoardingKit`** re-exports `COnBoardingKit` and adds what Swift is missing: a page described as values (`OBTemplatePage`) that the container assembles, a result builder for the bullet list, closures in place of the container's target/action buttons, `async` presentation of privacy pages, and initializers with default arguments.
 
 [Documentations/Internal/DeclarationSources.md](Documentations/Internal/DeclarationSources.md) says where every declaration and type comes from and which members macOS releases removed.
 
@@ -37,10 +37,12 @@ The package links `OnBoardingKit.framework` from the SDK's `PrivateFrameworks` d
 
 ### A "What's New" sheet
 
+Describe the page as values and let the container assemble it. Nothing on the template view or the controller needs setting afterwards.
+
 ```swift
 import OnBoardingKit
 
-let templateView = OBTemplateView(title: "What's New in Atlas", systemImage: "map") {
+let page = OBTemplatePage(title: "What's New in Atlas", image: .systemImage("map")) {
     OBTemplatePartBulletList.Item("Offline Maps", description: "Download a region and use it without a connection.", systemImage: "arrow.down.circle")
     OBTemplatePartBulletList.Item("Shared Trips", description: "Plan a route together.", systemImage: "person.2")
     if showsBetaFeatures {
@@ -49,19 +51,39 @@ let templateView = OBTemplateView(title: "What's New in Atlas", systemImage: "ma
 }
 
 let controller = OBTemplateContainerViewController(
-    templateView: templateView,
+    page: page,
     primaryButton: .init("Continue") { controller in controller.dismiss(nil) },
     cancelButton: .init("Not Now") { controller in controller.dismiss(nil) }
 )
 window.contentViewController?.presentAsSheet(controller)
 ```
 
-The tray holds a primary, a secondary and a cancel button. Before macOS 26 the framework draws them as a first button, a link-styled button and a second button; `button(for:)` returns the right one on either. The primary button answers Return and the cancel button Escape.
+A page also takes body text, an image of your own (`.image(_:)`, such as the app's icon), a tint for the rows' images (`featureTintColor`), the rows' metrics (`featureSpacing`) and a size. Its `layout` sets the side margins:
 
-The controller opens at the size the framework gives its own sheets: 482 × 546 points. For a sheet whose height follows its window's, as the framework's own sheets do (88 % of the window, 546 to 600 points), ask for that size before presenting it:
+| Layout | Side margins | Image |
+|---|---|---|
+| `.standard` | 175 points, for a page that fills a whole window | leads the text |
+| `.wide` | 85 points | leads the text |
+| `.centered` (default) | 68 points, rows 344 points wide, as the App Store's sheets | centered above the text |
+| `.privacy` | 68 points, the content in a scroll view of its own | leads the text |
+
+### Building the template yourself
+
+`OBTemplateContainerViewController(templateView:primaryButton:secondaryButton:cancelButton:)` takes a template view you made, for what a page does not cover:
 
 ```swift
-controller.preferredContentSize = OBTemplateContainerViewController.sheetSize(forParentWindowSize: window.frame.size)
+let templateView = OBTemplateView(title: "What's New in Atlas", systemImage: "map") {
+    OBTemplatePartBulletList.Item("Offline Maps", description: "Download a region and use it without a connection.", systemImage: "arrow.down.circle")
+}
+let controller = OBTemplateContainerViewController(templateView: templateView, primaryButton: .init("Continue") { $0.dismiss(nil) })
+```
+
+The tray holds a primary, a secondary and a cancel button. Before macOS 26 the framework draws them as a first button, a link-styled button and a second button; `button(for:)` returns the right one on either. The primary button answers Return and the cancel button Escape.
+
+Either way the controller opens at the size the framework gives its own sheets: 482 × 546 points. For a sheet whose height follows its window's, as the framework's own sheets do (88 % of the window, 546 to 600 points), give the page that size:
+
+```swift
+page.size = OBTemplateContainerViewController.sheetSize(forParentWindowSize: window.frame.size)
 ```
 
 ### A privacy page

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Draft - 用值描述一页，由容器组装</title>
+<style>
+/* Evolution proposal page, shared style (style A, "Apple documentation").
+   Copy this whole <style> block verbatim. Page-specific rules, if any, go only
+   in the marked block at the end. Must render in WebKit (Safari, Xcode preview,
+   Quick Look): no JavaScript, no external resources. */
+:root {
+  --background: #ffffff; --foreground: #1d1d1f; --secondary: #6e6e73; --separator: #d2d2d7;
+  --panel: #f5f5f7; --code-background: #f2f2f4; --accent: #0071e3;
+  --added: #1f8a4c; --added-fill: #e3f5ea;
+  --changed: #b26a00; --changed-fill: #fdf0db;
+  --removed: #c62828; --removed-fill: #fbe4e4;
+  --moved: #0066cc; --moved-fill: #e5f0fc;
+  --kept: #6e6e73; --kept-fill: #ececef;
+  --token-keyword: #ad3da4; --token-type: #3900a0; --token-string: #c41a16; --token-number: #1c00cf;
+  --token-comment: #707f8c; --token-macro: #643820;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1c1c1e; --foreground: #f2f2f7; --secondary: #a1a1a6; --separator: #3a3a3c;
+    --panel: #2c2c2e; --code-background: #2a2a2d; --accent: #4ea1ff;
+    --added: #4cd281; --added-fill: #183826;
+    --changed: #ffb340; --changed-fill: #3d2c10;
+    --removed: #ff6b6b; --removed-fill: #3d1a1a;
+    --moved: #5aa9ff; --moved-fill: #142b45;
+    --kept: #b0b0b5; --kept-fill: #333336;
+    --token-keyword: #fc5fa3; --token-type: #d0a8ff; --token-string: #fc6a5d; --token-number: #d0bf69;
+    --token-comment: #7f8c98; --token-macro: #fd8f3f;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--background); color: var(--foreground);
+  font: 15px/1.65 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased; }
+.page { max-width: 1080px; margin: 0 auto; padding: 28px 24px 72px; }
+.svg-definitions { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Header */
+.eyebrow { margin: 0 0 6px; font-size: 13px; color: var(--secondary); }
+.crumb + .crumb::before { content: " / "; }
+h1 { font-size: 28px; line-height: 1.3; letter-spacing: -0.01em; margin: 0 0 12px; }
+h1 code { font-size: 0.8em; }
+.proposal-number { color: var(--secondary); margin-right: 4px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; font-size: 13px; color: var(--secondary); }
+.meta div { display: flex; gap: 6px; align-items: baseline; }
+.meta dd { margin: 0; color: var(--foreground); }
+.meta dd code { font-size: 12px; }
+.status { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--kept); background: var(--kept-fill); }
+.status-accepted { color: var(--moved); background: var(--moved-fill); }
+.status-in-progress { color: var(--changed); background: var(--changed-fill); }
+.status-implemented { color: var(--added); background: var(--added-fill); }
+.status-rejected, .status-withdrawn { color: var(--removed); background: var(--removed-fill); }
+
+/* Table of contents */
+.toc { margin: 22px 0 8px; padding: 8px 10px; background: var(--panel); border-radius: 12px; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.toc li { margin: 0; }
+.toc a { display: inline-block; padding: 3px 11px; border-radius: 999px; color: var(--accent); text-decoration: none; font-size: 14px; }
+.toc a:hover { background: var(--background); }
+
+/* Text */
+section { scroll-margin-top: 16px; }
+h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--separator); }
+h3 { font-size: 16px; margin: 22px 0 8px; }
+h4 { font-size: 15px; margin: 18px 0 6px; }
+p { margin: 10px 0; }
+a { color: var(--accent); }
+ul, ol { padding-left: 22px; }
+li { margin: 4px 0; }
+blockquote { margin: 12px 0; padding: 2px 14px; border-left: 3px solid var(--separator); color: var(--secondary); }
+hr { border: none; border-top: 1px solid var(--separator); margin: 24px 0; }
+
+/* Code */
+code { font: 0.86em/1.4 ui-monospace, "SF Mono", Menlo, monospace; background: var(--code-background); padding: 1px 5px; border-radius: 5px; }
+pre { background: var(--code-background); border-radius: 10px; padding: 14px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+pre code { font: inherit; background: none; padding: 0; border-radius: 0; }
+.token-keyword { color: var(--token-keyword); font-weight: 600; }
+.token-type { color: var(--token-type); }
+.token-string { color: var(--token-string); }
+.token-number { color: var(--token-number); }
+.token-comment { color: var(--token-comment); }
+.token-macro { color: var(--token-macro); }
+
+/* Callouts */
+.callout { background: var(--panel); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 16px; margin: 14px 0; }
+.callout-note { border-left-color: var(--secondary); }
+.callout-warning { border-left-color: var(--changed); }
+.callout-title { margin: 0 0 6px; font-weight: 600; }
+.callout > :last-child { margin-bottom: 0; }
+.callout ol, .callout ul { margin: 6px 0 0; }
+
+/* Diagrams */
+.legend { list-style: none; padding: 0; margin: 8px 0 12px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--secondary); }
+.legend li { margin: 0; }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid; vertical-align: -2px; margin-right: 6px; }
+.swatch-added { background: var(--added-fill); border-color: var(--added); }
+.swatch-changed { background: var(--changed-fill); border-color: var(--changed); }
+.swatch-removed { background: var(--removed-fill); border-color: var(--removed); border-style: dashed; }
+.swatch-moved { background: var(--moved-fill); border-color: var(--moved); }
+.swatch-kept { background: var(--kept-fill); border-color: var(--kept); }
+.figure { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--separator); border-radius: 12px; padding: 12px; margin: 12px 0; }
+.figure svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.figure-narrow svg { min-width: 0; max-width: 640px; margin: 0 auto; }
+.figure-caption { font-size: 13px; color: var(--secondary); margin-top: 8px; }
+svg text { font: 12px ui-monospace, "SF Mono", Menlo, monospace; fill: var(--foreground); }
+svg .group-label { font-size: 13px; font-weight: 700; }
+svg .caption { font-size: 10.5px; fill: var(--secondary); }
+svg .strike { text-decoration: line-through; }
+svg .group { fill: none; stroke: var(--separator); stroke-width: 1.5; stroke-dasharray: 5 4; }
+svg .box-added { fill: var(--added-fill); stroke: var(--added); stroke-width: 1.5; }
+svg .box-changed { fill: var(--changed-fill); stroke: var(--changed); stroke-width: 1.5; }
+svg .box-removed { fill: var(--removed-fill); stroke: var(--removed); stroke-width: 1.5; stroke-dasharray: 4 3; }
+svg .box-moved { fill: var(--moved-fill); stroke: var(--moved); stroke-width: 1.5; }
+svg .box-kept { fill: var(--kept-fill); stroke: var(--kept); stroke-width: 1.2; }
+svg .arrow { fill: none; stroke: var(--secondary); stroke-width: 1.4; marker-end: url(#arrowhead); }
+svg .arrow-weak { stroke-dasharray: 4 3; }
+svg .arrow-removed { stroke: var(--removed); stroke-dasharray: 4 3; }
+svg .arrowhead { fill: var(--secondary); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 10px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { border: 1px solid var(--separator); padding: 7px 9px; text-align: left; vertical-align: top; }
+th { background: var(--panel); font-weight: 600; }
+.numeric { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; white-space: nowrap; padding: 0 7px; border-radius: 5px; font-size: 12px; font-weight: 600; color: var(--kept); background: var(--kept-fill); }
+.tag-added { color: var(--added); background: var(--added-fill); }
+.tag-changed { color: var(--changed); background: var(--changed-fill); }
+.tag-removed { color: var(--removed); background: var(--removed-fill); }
+.tag-moved { color: var(--moved); background: var(--moved-fill); }
+
+/* Collapsible sections */
+details { border: 1px solid var(--separator); border-radius: 12px; margin: 12px 0; overflow: hidden; }
+summary { cursor: pointer; list-style: none; padding: 11px 16px; font-weight: 600; background: var(--panel); }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "›"; display: inline-block; width: 1em; color: var(--secondary); -webkit-transition: -webkit-transform 0.15s; transition: transform 0.15s; }
+details[open] > summary::before { -webkit-transform: rotate(90deg); transform: rotate(90deg); }
+details[open] > summary { border-bottom: 1px solid var(--separator); }
+.details-body { padding: 4px 16px 12px; }
+
+@media (max-width: 640px) {
+  .page { padding: 20px 16px 56px; }
+  h1 { font-size: 23px; }
+}
+
+/* ===== Page-specific styles (only for elements the shared style lacks, e.g. UI mockups) ===== */
+</style>
+</head>
+<body>
+<svg class="svg-definitions" aria-hidden="true" focusable="false">
+  <defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M 0 0 L 10 5 L 0 10 z"/></marker></defs>
+</svg>
+<div class="page">
+
+<header class="doc-header">
+  <p class="eyebrow"><span class="crumb">swift-onboardingkit</span><span class="crumb">Evolutions</span><span class="crumb">draft</span></p>
+  <h1><span class="proposal-number">Draft</span> 用值描述一页，由容器组装</h1>
+  <dl class="meta">
+    <div><dt>状态</dt><dd><span class="status status-in-progress">In Progress</span></dd></div>
+    <div><dt>最后更新</dt><dd>2026-11-24</dd></div>
+    <div><dt>项目类型</dt><dd>库</dd></div>
+    <div><dt>原文</dt><dd><code>draft-template-page.md</code></dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="目录">
+  <ol>
+    <li><a href="#summary">摘要</a></li>
+    <li><a href="#decide">要你定</a></li>
+    <li><a href="#architecture">架构图</a></li>
+    <li><a href="#map">改动地图</a></li>
+    <li><a href="#design">详细设计</a></li>
+    <li><a href="#research">调研</a></li>
+    <li><a href="#alternatives">替代方案</a></li>
+    <li><a href="#impact">影响</a></li>
+    <li><a href="#steps">落地步骤</a></li>
+    <li><a href="#log">决策日志</a></li>
+  </ol>
+</nav>
+
+<main class="content">
+
+<section id="summary">
+  <h2>摘要</h2>
+  <p>新增值类型 <code>OBTemplatePage</code>：一页欢迎页或 What's New 页要显示的东西（标题、正文、顶部图片、功能行）和它的版式（左右边距、功能行着色与间距、尺寸），全是数据。<code>OBTemplateContainerViewController(page:primaryButton:secondaryButton:cancelButton:)</code> 把它组装成模板视图、列表和容器控制器。调用方不再去设 <code>templateType</code>、<code>needsExtraWideContent</code>、<code>preferredContentSize</code> 这些视图和控制器的属性，也不必知道它们要在组装前还是组装后设。</p>
+</section>
+
+<section id="decide">
+  <h2>要你定</h2>
+  <div class="callout">
+    <p class="callout-title">发布前</p>
+    <ol>
+      <li>默认版式定哪个：暂定 <code>.centered</code>（App Store 的做法），在 demo 里调过再定。</li>
+      <li>什么时候打 <code>0.2.0</code>，RuntimeViewer 随后改用它。</li>
+    </ol>
+  </div>
+</section>
+
+<section id="architecture">
+  <h2>架构图</h2>
+  <ul class="legend">
+    <li><i class="swatch swatch-added"></i>新增</li>
+    <li><i class="swatch swatch-kept"></i>不变</li>
+  </ul>
+  <div class="figure">
+  <svg viewBox="0 0 1000 300" role="img" aria-label="OBTemplatePage assembled by the container">
+    <rect class="group" x="10" y="10" width="980" height="280" rx="10"/>
+    <text class="group-label" x="22" y="30">OnBoardingKit (Swift layer)</text>
+    <rect class="box-added" x="30" y="48" width="300" height="112" rx="6"/>
+    <text x="42" y="68">OBTemplatePage</text>
+    <text class="caption" x="42" y="88">title, bodyText, image, features</text>
+    <text class="caption" x="42" y="106">featureTintColor, featureSpacing</text>
+    <text class="caption" x="42" y="124">layout: .standard .wide</text>
+    <text class="caption" x="42" y="142">        .centered .privacy; size</text>
+    <rect class="box-added" x="400" y="48" width="560" height="44" rx="6"/>
+    <text x="412" y="66">OBTemplateContainerViewController.init(page:primaryButton:…)</text>
+    <text class="caption" x="412" y="83">builds the list, the template and the controller from the page</text>
+    <rect class="box-kept" x="400" y="112" width="270" height="44" rx="6"/>
+    <text x="412" y="130">OBTemplatePartBulletList</text>
+    <text class="caption" x="412" y="147">spacing + layout first, then rows</text>
+    <rect class="box-kept" x="690" y="112" width="270" height="44" rx="6"/>
+    <text x="702" y="130">OBTemplateView</text>
+    <text class="caption" x="702" y="147">by image kind; layout set again</text>
+    <rect class="box-kept" x="400" y="176" width="560" height="44" rx="6"/>
+    <text x="412" y="194">init(templateView:primaryButton:…)  (existing)</text>
+    <text class="caption" x="412" y="211">constraints on, standard → centered, sheet size</text>
+    <rect class="box-kept" x="400" y="236" width="560" height="36" rx="6"/>
+    <text x="412" y="259">preferredContentSize = page.size</text>
+    <path class="arrow" d="M 330 70 L 400 70"/>
+    <path class="arrow" d="M 535 92 L 535 112"/>
+    <path class="arrow" d="M 825 92 L 825 112"/>
+    <path class="arrow" d="M 680 156 L 680 176"/>
+    <path class="arrow" d="M 680 220 L 680 236"/>
+  </svg>
+  </div>
+  <p class="figure-caption">页面值只是数据；组装时新建视图与控制器，组装完把版式设回模板与列表，再设尺寸。</p>
+</section>
+
+<section id="map">
+  <h2>改动地图</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>文件 / 类型</th><th>动作</th><th>改什么</th><th>为什么</th><th>步骤</th></tr></thead>
+    <tbody>
+      <tr><td><code>Sources/OnBoardingKit/TemplatePage.swift</code> · <code>OBTemplatePage</code>、<code>Image</code>、<code>Layout</code></td><td><span class="tag tag-added">新增</span></td><td>页面的值、两种构造器、四种版式</td><td>页面写成数据</td><td class="numeric">1</td></tr>
+      <tr><td>同上 · <code>OBTemplateContainerViewController.init(page:…)</code></td><td><span class="tag tag-added">新增</span></td><td>由页面组装模板、列表、控制器</td><td>组装的顺序与补设留在库里</td><td class="numeric">1</td></tr>
+      <tr><td>同上 · <code>OBTemplatePartBulletList</code> 的 <code>fileprivate</code> 扩展</td><td><span class="tag tag-added">新增</span></td><td>按页面建列表、套用版式</td><td>列表要在加行前设好间距与版式</td><td class="numeric">1</td></tr>
+      <tr><td><code>Tests/OnBoardingKitTests/TemplatePageTests.swift</code></td><td><span class="tag tag-added">新增</span></td><td>文字、功能行、四种版式、尺寸、窗口尺寸与模板铺满</td><td>行为清单</td><td class="numeric">1</td></tr>
+      <tr><td><code>README.md</code></td><td><span class="tag tag-changed">修改</span></td><td>用法以页面值为主，原写法挪到「Building the template yourself」，加版式表</td><td>公开用法</td><td class="numeric">2</td></tr>
+      <tr><td><code>Documentations/Internal/DeclarationSources.md</code></td><td><span class="tag tag-changed">修改</span></td><td>文件树加一行；记「组装后要设回版式、间距在加行前设」</td><td>维护者会踩</td><td class="numeric">2</td></tr>
+      <tr><td><code>Documentations/Evolutions/draft-template-page.md</code>（与 <code>.html</code>）、索引</td><td><span class="tag tag-added">新增</span></td><td>本提案与索引</td><td>留档</td><td class="numeric">2</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="design">
+  <h2>详细设计</h2>
+  <details open>
+    <summary>公开接口</summary>
+    <div class="details-body">
+<pre><code><span class="token-keyword">public struct</span> <span class="token-type">OBTemplatePage</span> {
+    <span class="token-keyword">public enum</span> <span class="token-type">Image</span> { <span class="token-keyword">case</span> systemImage(<span class="token-type">String</span>); <span class="token-keyword">case</span> image(<span class="token-type">NSImage</span>) }
+
+    <span class="token-keyword">public struct</span> <span class="token-type">Layout</span>: <span class="token-type">Hashable</span>, <span class="token-type">Sendable</span> {
+        <span class="token-keyword">public static let</span> standard: <span class="token-type">Layout</span>   <span class="token-comment">// 175-point margins, image leads</span>
+        <span class="token-keyword">public static let</span> wide: <span class="token-type">Layout</span>       <span class="token-comment">// 85-point margins, image leads</span>
+        <span class="token-keyword">public static let</span> centered: <span class="token-type">Layout</span>   <span class="token-comment">// 68-point margins, image centered, rows 344 wide</span>
+        <span class="token-keyword">public static let</span> privacy: <span class="token-type">Layout</span>    <span class="token-comment">// 68-point margins, content in an inner scroll view</span>
+    }
+
+    <span class="token-keyword">public var</span> title: <span class="token-type">String</span>
+    <span class="token-keyword">public var</span> bodyText: <span class="token-type">String</span>?
+    <span class="token-keyword">public var</span> image: <span class="token-type">Image</span>?
+    <span class="token-keyword">public var</span> features: [<span class="token-type">OBTemplatePartBulletList.Item</span>]
+    <span class="token-keyword">public var</span> featureTintColor: <span class="token-type">NSColor</span>?
+    <span class="token-keyword">public var</span> featureSpacing: <span class="token-type">OBBulletListSpacing</span>
+    <span class="token-keyword">public var</span> layout: <span class="token-type">Layout</span>
+    <span class="token-keyword">public var</span> size: <span class="token-type">NSSize</span>
+}
+
+<span class="token-keyword">extension</span> <span class="token-type">OBTemplateContainerViewController</span> {
+    <span class="token-keyword">public convenience init</span>(page: <span class="token-type">OBTemplatePage</span>, primaryButton: <span class="token-type">Button</span>,
+                            secondaryButton: <span class="token-type">Button</span>? = <span class="token-keyword">nil</span>, cancelButton: <span class="token-type">Button</span>? = <span class="token-keyword">nil</span>)
+}</code></pre>
+      <ul>
+        <li>两个页面构造器：数组版与 result builder 版，默认 <code>layout: .centered</code>、<code>size: sheetSize()</code>。</li>
+        <li>每次组装都新建视图与控制器；没有功能行时不建列表。</li>
+        <li><code>.image(_:)</code> 走 <code>initWithTitle:bodyText:icon:contentLayoutStyle:</code>，图片按调用方给的尺寸显示（App Store 的 App 图标是 128pt）。</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section id="research">
+  <h2>调研</h2>
+  <details>
+    <summary>动机与框架的版式规则</summary>
+    <div class="details-body">
+      <p>RuntimeViewer 的引导页三次「看起来不对」，每次都要在视图或控制器上补设属性，而且顺序有讲究：窗口 0 × 0（关自动约束、给尺寸），正文挤成约 130pt 一列（模板与列表都要设类型，模板第一次绘制才读类型，列表加行时就读间距）。用户比较样式后要求把组装这部分搬进库，封装成结构化数据。</p>
+      <ul>
+        <li>边距按 <code>templateType</code>：<code>standard</code> / <code>unspecified</code> 175pt（加宽 85），<code>privacy</code>、<code>centered</code> 68（<code>-[OBTemplateView outerContentMargins]</code>）。</li>
+        <li>只有 <code>centered</code> 把顶部图片居中，文字一律按自然方向排。</li>
+        <li>列表行宽：<code>centered</code> 344，其余 382 / 420（加宽 562 / 600）。</li>
+        <li>App Store 的 What's New 与欢迎页：模板与列表都 <code>setTemplateType: 3</code>，列表符号用 App 强调色；Freeform、Shortcuts 用 <code>setNeedsExtraWideContent:</code>。</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section id="alternatives">
+  <h2>替代方案</h2>
+  <details>
+    <summary>四条被否的路径</summary>
+    <div class="details-body">
+      <ul>
+        <li><strong>版式用 enum</strong>：加一种版式就破坏调用方的 <code>switch</code>，改用 struct 加静态成员。</li>
+        <li><strong>直接暴露 <code>templateType</code> 与 <code>needsExtraWideContent</code></strong>：把框架的组合规则交给调用方，改用具名版式。</li>
+        <li><strong>按钮也放进页面值</strong>：按钮带闭包，不是描述页面的数据；与已有构造器对称、作参数更顺手。</li>
+        <li><strong>页面值提供 <code>makeViewController()</code></strong>：Apple 由值建控制器的先例多是控制器构造器，本包也已有 <code>init(templateView:…)</code>。</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section id="impact">
+  <h2>影响</h2>
+  <ul>
+    <li><strong>源码兼容</strong>：纯新增，已有接口不变。</li>
+    <li><strong>ABI</strong>：不适用，本库以 SPM 源码分发。</li>
+    <li><strong>下游</strong>：RuntimeViewer 的 <code>OnboardingPage+TemplateContainer.swift</code> 可改为映射成 <code>OBTemplatePage</code> 再组装，等本包发布后抬下限。</li>
+    <li><strong>版本</strong>：新增公开类型，发布为 <code>0.2.0</code>。</li>
+  </ul>
+</section>
+
+<section id="steps">
+  <h2>落地步骤</h2>
+  <ol>
+    <li>✅ <strong>页面值与组装</strong>：文字、功能行、无功能行、四种版式、尺寸、窗口尺寸与模板铺满六组测试。</li>
+    <li>✅ <strong>文档</strong>：README、实现说明、本提案与索引。</li>
+    <li><strong>发布</strong>：用户看过样式、定下默认版式后打 <code>0.2.0</code>，RuntimeViewer 再改用它。</li>
+  </ol>
+</section>
+
+<section id="log">
+  <h2>决策日志</h2>
+  <details>
+    <summary>2 条，最近一条：第 1、2 步完成</summary>
+    <div class="details-body">
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>日期</th><th>变更</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td class="numeric">2026-11-24</td><td>Created as In Progress</td><td>RuntimeViewer 的引导页三次因视图、控制器属性没设对而难看。用户用 demo 比较样式后，要求把组装页面的那部分搬进本库：封装成结构化数据，不暴露视图与控制器的属性，最后组装成控制器。按用户的直接要求实现，提案随实现一起写。</td></tr>
+          <tr><td class="numeric">2026-11-24</td><td>第 1、2 步完成</td><td>Ultra 上 36 个测试全过；去掉组装后设回版式的几行时，版式那组测试变红。demo 已改为走 <code>OBTemplatePage</code>。默认版式暂定 <code>.centered</code>，等用户在 demo 里调过再定。</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </details>
+</section>
+
+</main>
+</div>
+</body>
+</html>
