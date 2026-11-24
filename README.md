@@ -22,7 +22,7 @@ The package has two modules:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Mx-Iris/swift-onboardingkit.git", branch: "main"),
+    .package(url: "https://github.com/Mx-Iris/swift-onboardingkit.git", from: "0.1.0"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: [.product(name: "OnBoardingKit", package: "swift-onboardingkit")]),
@@ -31,7 +31,7 @@ targets: [
 
 Use the `COnBoardingKit` product instead if you only want the declarations, for example from an Objective-C target.
 
-The package links `OnBoardingKit.framework` from the SDK's `PrivateFrameworks` directory through an unsafe linker flag. From tools version 6.2 on, SwiftPM no longer refuses dependencies that use unsafe flags.
+The package links `OnBoardingKit.framework` from the SDK's `PrivateFrameworks` directory through unsafe linker flags. From tools version 6.2 on, SwiftPM no longer refuses dependencies that use unsafe flags. The framework is linked weakly, so an app that links the package still launches on a system without it.
 
 ## Usage
 
@@ -83,6 +83,7 @@ templateView.contentArea = bulletList;
 ## Things to know
 
 - **This is SPI.** Nothing here is promised by Apple, and any of it can change in an OS update. macOS 27.2 removed three members that 27.0 still had.
+- **The framework is linked weakly.** On a system without it the app launches and every class of it is `nil`, so creating one would crash. Check first, for example with `NSClassFromString("OBTemplateContainerViewController") != nil`, and skip the page when it is missing.
 - **The tests check the header against the running system.** `swift test` reads the header and fails on any declared class, method or property accessor the running macOS does not have, so a removal shows up as a failing test rather than an unrecognized-selector crash.
 - **`OBTemplateView` builds its subviews the first time it draws.** Until then `subviews` is empty and `contentArea` is not in the hierarchy. Set its properties at any time before that.
 - **`layoutStyle` is read only while the template view is created.** Pass it to the initializer.

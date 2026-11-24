@@ -164,7 +164,7 @@ details[open] > summary { border-bottom: 1px solid var(--separator); }
   <h1><span class="proposal-number">0001</span> 声明 OnBoardingKit 导出的类，并给 Swift 一层便利接口</h1>
   <dl class="meta">
     <div><dt>状态</dt><dd><span class="status status-implemented">Implemented</span></dd></div>
-    <div><dt>最后更新</dt><dd>2026-11-23</dd></div>
+    <div><dt>最后更新</dt><dd>2026-11-24</dd></div>
     <div><dt>项目类型</dt><dd>库</dd></div>
     <div><dt>原文</dt><dd><code>0001-objective-c-declarations-and-swift-layer.md</code></dd></div>
   </dl>
@@ -451,7 +451,7 @@ extension OBPrivacyPresenter {
 <section id="log">
   <h2>决策日志</h2>
   <details>
-    <summary>7 条，最近一条：Implemented</summary>
+    <summary>8 条，最近一条：改为弱链接，公开并发布 0.1.0</summary>
     <div class="details-body">
       <div class="table-wrap">
       <table>
@@ -464,6 +464,7 @@ extension OBPrivacyPresenter {
           <tr><td class="numeric">2026-11-23</td><td>枚举名由本包起</td><td>二进制里没有这些整数的名字，按 27.2 的行为命名并写明</td></tr>
           <tr><td class="numeric">2026-11-23</td><td>In Progress</td><td>代码、测试与文档已在本地完成，全部测试通过，尚未提交</td></tr>
           <tr><td class="numeric">2026-11-23</td><td>Implemented</td><td>用户选择只在本地提交：代码、测试与文档作为新仓库的第一个提交进入 <code>main</code>，编号 0001；不建远端</td></tr>
+          <tr><td class="numeric">2026-11-24</td><td>改为弱链接，公开并发布 0.1.0</td><td>第一个依赖方 RuntimeViewer（提案 <code>draft-onboarding-pages</code>）是公开仓库，它的 CI 与贡献者解析不了私有依赖，用户决定把本仓库改为公开、打 <code>0.1.0</code>。同批把 <code>OnBoardingKit.framework</code> 改成弱链接（<code>-Xlinker -weak_framework</code>，去掉 <code>.linkedFramework</code>）：强链接时，框架在某个系统上消失会让链接本包的 App 根本启动不了；弱链接后 App 照常启动、类为 <code>nil</code>，由调用方先查再用（README「Things to know」）。两个测试包实测为 <code>LC_LOAD_WEAK_DYLIB</code>，全部测试通过</td></tr>
         </tbody>
       </table>
       </div>
