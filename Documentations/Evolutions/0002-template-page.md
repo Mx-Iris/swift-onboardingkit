@@ -3,7 +3,7 @@
 - **状态**: Implemented
 - **作者**: JH
 - **创建日期**: 2026-11-24
-- **最后更新**: 2026-11-24
+- **最后更新**: 2026-11-25
 - **所属愿景**: 无
 - **关联提案**: [0001 声明 OnBoardingKit 导出的类，并给 Swift 一层便利接口](0001-objective-c-declarations-and-swift-layer.md)
 - **实现分支 / PR**: 直接提交在 `main`，随 `0.2.0` 发布
@@ -169,3 +169,4 @@ README 的用法改为以页面值为主，原写法保留在「Building the tem
 | 2026-11-24 | Created as In Progress | RuntimeViewer 的引导页三次因视图、控制器属性没设对而难看。用户用 demo 比较样式后，要求把 demo 里组装页面的那部分搬进本库：封装成结构化数据，不暴露视图与控制器的属性，最后组装成控制器。按用户的直接要求实现，提案随实现一起写。 |
 | 2026-11-24 | 第 1、2 步完成 | Ultra 上 36 个测试全过；去掉组装后设回版式的几行时，版式那组测试变红（已有的按钮构造器会把标准类型改成居中）。demo 已改为走 `OBTemplatePage`。默认版式暂定 `.centered`（App Store 的做法），等用户在 demo 里调过再定。 |
 | 2026-11-24 | Implemented，发布 0.2.0 | 用户选定 App Store 的样式（居中版式、功能行用强调色、What's New 不放顶部图片），默认版式维持 `.centered`。连同尚未单独发布的「标准类型改成居中」（原计划 0.1.2）一起打 `0.2.0`：新增公开类型，按 semver 升次版本号。RuntimeViewer 随即改用页面值。配套文档：不另写，用法在 README、组装顺序在实现说明。新术语：无。 |
+| 2026-11-25 | 修正默认行距，发布 0.2.1 | 0.2.0 的 `featureSpacing` 默认 `.default`（0）并写回列表，盖掉了框架给新列表的 `large`，每行图标成了 0 × 0，RuntimeViewer 的 What's New 上符号压在标题上。改为 `.default` 不写回列表，独立行与子行按 `.large` 建、子行跟随列表的档位，复现测试修复前先红。`OBTemplatePartBulletListItem(item:)` 加了带默认值的 `spacing:`，源码兼容，按 semver 发补丁版本。原因记在实现说明。 |

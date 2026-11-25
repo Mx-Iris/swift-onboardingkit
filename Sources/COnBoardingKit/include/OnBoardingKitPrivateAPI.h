@@ -179,9 +179,11 @@ typedef NS_ENUM(NSUInteger, OBTemplateType) {
     OBTemplateTypeCentered = 3,
 };
 
-/// The row metrics of a bullet list, for the list (`bulletListSpacing`) and for a single row (`spacing:`).
+/// The row metrics of a bullet list, for the list (`bulletListSpacing`) and for a single row (`spacing:`). A new list is
+/// `OBBulletListSpacingLarge`.
 typedef NS_ENUM(NSInteger, OBBulletListSpacing) {
-    /// Leaves the metrics as they are.
+    /// No metrics. A row made with it, or added to a list set to it, has a zero-size icon, and its symbol overflows onto
+    /// the text. On a list it leaves the row width as it was, except that a centered list keeps its rows 344 points wide.
     OBBulletListSpacingDefault = 0,
     /// 40-point icons with 24-point symbols, 12 points between icon and text, rows centered vertically; the list is 382
     /// points wide, 562 with `needsExtraWideContent`.

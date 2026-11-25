@@ -103,7 +103,8 @@ extension OBTemplatePartBulletList {
     /// Appends one row.
     public func addItem(_ item: Item) {
         guard item.subitems.isEmpty else {
-            let sublistItems = item.subitems.map(OBTemplatePartBulletListItem.init(item:))
+            // A sub-item keeps the metrics it is made with; the expandable row does not give it the list's.
+            let sublistItems = item.subitems.map { OBTemplatePartBulletListItem(item: $0, spacing: bulletListSpacing) }
             switch item.image {
             case .systemImage(let symbolName):
                 addExpandableItem(withTitle: item.title, description: item.description, symbol: symbolName, imageTintColor: item.tintColor, status: item.status, sublistItems: sublistItems)
@@ -143,15 +144,19 @@ extension OBTemplatePartBulletList {
 
 extension OBTemplatePartBulletListItem {
     /// A stand-alone row view, as an expandable row's sub-item uses it.
+    ///
+    /// - Parameter spacing: The row's metrics. A row made with `.default` gets no icon size at all, so `.default` is
+    ///   taken as `.large`, the metrics a new bullet list has.
     @MainActor
-    public convenience init(item: OBTemplatePartBulletList.Item) {
+    public convenience init(item: OBTemplatePartBulletList.Item, spacing: OBBulletListSpacing = .large) {
+        let rowSpacing: OBBulletListSpacing = spacing == .default ? .large : spacing
         switch item.image {
         case .systemImage(let symbolName):
-            self.init(title: item.title, description: item.description, symbol: symbolName, symbolTintColor: item.tintColor, spacing: .default, status: item.status, showsBackground: false)
+            self.init(title: item.title, description: item.description, symbol: symbolName, symbolTintColor: item.tintColor, spacing: rowSpacing, status: item.status, showsBackground: false)
         case .image(let image):
-            self.init(title: item.title, description: item.description, image: image, imageTintColor: item.tintColor, spacing: .default, status: item.status, showsBackground: false)
+            self.init(title: item.title, description: item.description, image: image, imageTintColor: item.tintColor, spacing: rowSpacing, status: item.status, showsBackground: false)
         case nil:
-            self.init(title: item.title, description: item.description, image: nil, imageTintColor: item.tintColor, spacing: .default, status: item.status, showsBackground: false)
+            self.init(title: item.title, description: item.description, image: nil, imageTintColor: item.tintColor, spacing: rowSpacing, status: item.status, showsBackground: false)
         }
     }
 }

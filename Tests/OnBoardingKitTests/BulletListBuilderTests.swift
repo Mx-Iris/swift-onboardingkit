@@ -65,6 +65,61 @@ struct BulletListBuilderTests {
         #expect(subitemTitles == ["Location", "Contacts"])
     }
 
+    @Test("Sub-items of an expandable row take the list's metrics")
+    func subitemsTakeListMetrics() throws {
+        let bulletList = OBTemplatePartBulletList {
+            OBTemplatePartBulletList.Item("Privacy", description: "What is shared.", systemImage: "hand.raised") {
+                OBTemplatePartBulletList.Item("Location", systemImage: "location")
+            }
+        }
+        let stack = try #require(bulletList.stack)
+        let expandableRow = try #require(stack.arrangedSubviews.compactMap { $0 as? OBTemplatePartBulletExpandableListItem }.first)
+        expandableRow.expanded = true
+        let subitem = try #require(expandableRow.expandableStack?.arrangedSubviews.compactMap { $0 as? OBTemplatePartBulletListItem }.first)
+
+        #expect(subitem.iconWidth == 40)
+        #expect(subitem.iconHeight == 40)
+        #expect(subitem.iconTextSpacing == 12)
+    }
+
+    @Test("A stand-alone row gets the large metrics a bullet list starts with")
+    func standaloneRowGetsLargeMetrics() {
+        let row = OBTemplatePartBulletListItem(item: OBTemplatePartBulletList.Item("Location", systemImage: "location"))
+
+        #expect(row.iconWidth == 40)
+        #expect(row.iconHeight == 40)
+        #expect(row.iconTextSpacing == 12)
+    }
+
+    @Test("A stand-alone row takes the spacing it is given, with default meaning large", arguments: [
+        (OBBulletListSpacing.default, CGFloat(40)),
+        (OBBulletListSpacing.large, CGFloat(40)),
+        (OBBulletListSpacing.compact, CGFloat(24)),
+    ])
+    func standaloneRowTakesSpacing(spacing: OBBulletListSpacing, iconSide: CGFloat) {
+        let row = OBTemplatePartBulletListItem(item: OBTemplatePartBulletList.Item("Location", systemImage: "location"), spacing: spacing)
+
+        #expect(row.iconWidth == iconSide)
+        #expect(row.iconHeight == iconSide)
+    }
+
+    @Test("Sub-items of a compact list are compact too")
+    func subitemsOfCompactListAreCompact() throws {
+        let bulletList = OBTemplatePartBulletList(frame: .zero)
+        bulletList.bulletListSpacing = .compact
+        bulletList.addItems {
+            OBTemplatePartBulletList.Item("Privacy", systemImage: "hand.raised") {
+                OBTemplatePartBulletList.Item("Location", systemImage: "location")
+            }
+        }
+        let stack = try #require(bulletList.stack)
+        let expandableRow = try #require(stack.arrangedSubviews.compactMap { $0 as? OBTemplatePartBulletExpandableListItem }.first)
+        expandableRow.expanded = true
+        let subitem = try #require(expandableRow.expandableStack?.arrangedSubviews.compactMap { $0 as? OBTemplatePartBulletListItem }.first)
+
+        #expect(subitem.iconWidth == 24)
+    }
+
     @Test("addItems appends after the rows already there")
     func addItemsAppends() throws {
         let bulletList = OBTemplatePartBulletList {

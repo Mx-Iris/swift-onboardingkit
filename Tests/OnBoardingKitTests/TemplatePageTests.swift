@@ -17,6 +17,10 @@ struct TemplatePageTests {
         OBTemplateContainerViewController(page: page, primaryButton: .init("Continue") { _ in })
     }
 
+    private static func rows(of bulletList: OBTemplatePartBulletList) throws -> [OBTemplatePartBulletListItem] {
+        try #require(bulletList.stack).arrangedSubviews.compactMap { $0 as? OBTemplatePartBulletListItem }
+    }
+
     @Test("The template shows the page's title, body text and symbol")
     func templateShowsPageText() throws {
         let templateView = try #require(Self.assemble(Self.makePage()).templateView)
@@ -32,6 +36,58 @@ struct TemplatePageTests {
         let rows = try #require(templateView.bulletList?.stack).arrangedSubviews.compactMap { $0 as? OBTemplatePartBulletListItem }
 
         #expect(rows.count == 2)
+    }
+
+    @Test("Rows of a page that leaves the spacing alone get the framework's own metrics: 40-point icons")
+    func defaultSpacingKeepsFrameworkMetrics() throws {
+        let bulletList = try #require(Self.assemble(Self.makePage()).templateView?.bulletList)
+        let rows = try Self.rows(of: bulletList)
+
+        #expect(bulletList.bulletListSpacing == .large)
+        #expect(rows.count == 2)
+        for row in rows {
+            #expect(row.iconWidth == 40)
+            #expect(row.iconHeight == 40)
+            #expect(row.iconTextSpacing == 12)
+        }
+    }
+
+    @Test("A page's spacing reaches its rows")
+    func pageSpacingReachesRows() throws {
+        var page = Self.makePage()
+        page.featureSpacing = .compact
+        let bulletList = try #require(Self.assemble(page).templateView?.bulletList)
+        let rows = try Self.rows(of: bulletList)
+
+        #expect(bulletList.bulletListSpacing == .compact)
+        #expect(rows.count == 2)
+        for row in rows {
+            #expect(row.iconWidth == 24)
+            #expect(row.iconTextSpacing == 16)
+        }
+    }
+
+    @Test("Once laid out, each row's image is as wide as its icon")
+    func rowImagesAreLaidOutAtIconSize() throws {
+        let controller = Self.assemble(Self.makePage())
+        let window = NSWindow(contentViewController: controller)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let templateView = try #require(controller.templateView)
+
+        window.layoutIfNeeded()
+        templateView.viewWillDraw()
+        window.layoutIfNeeded()
+
+        let rows = try Self.rows(of: try #require(templateView.bulletList))
+        #expect(rows.count == 2)
+        for row in rows {
+            let imageFrame = try #require(row.imageView).frame
+            #expect(imageFrame.width == 40)
+            // The framework stretches the image to the text's height on 27.2 (58 or 59 points for these rows) and
+            // draws the symbol at its own size in the middle; only a zero height would hide it.
+            #expect(imageFrame.height >= 40)
+        }
     }
 
     @Test("A page without features has no bullet list")

@@ -52,7 +52,8 @@ public struct OBTemplatePage {
     public var features: [OBTemplatePartBulletList.Item]
     /// The color of the images of the rows that set no `tintColor` of their own. `nil` leaves them to the framework.
     public var featureTintColor: NSColor?
-    /// The row metrics of the bullet list.
+    /// The row metrics of the bullet list. `.default` keeps the ones the framework gives a new list, `.large`: 40-point
+    /// icons with 24-point symbols, as the App Store's sheets have.
     public var featureSpacing: OBBulletListSpacing
     public var layout: Layout
     /// The size the page opens at, as a window or as a sheet. The framework's own sheets are
@@ -144,7 +145,11 @@ extension OBTemplatePartBulletList {
     /// The page's bullet list. The spacing and the layout come first: a row takes the list's metrics when it is added.
     fileprivate convenience init(features: [Item], of page: OBTemplatePage) {
         self.init(frame: .zero)
-        bulletListSpacing = page.featureSpacing
+        // A new list is `.large`. Setting `.default` would give every row added afterwards a zero-size icon, which its
+        // symbol overflows onto the text, so the page's `.default` leaves the list as it is.
+        if page.featureSpacing != .default {
+            bulletListSpacing = page.featureSpacing
+        }
         apply(page.layout)
         for feature in features {
             var feature = feature

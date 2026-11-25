@@ -22,7 +22,7 @@ The package has two modules:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Mx-Iris/swift-onboardingkit.git", from: "0.2.0"),
+    .package(url: "https://github.com/Mx-Iris/swift-onboardingkit.git", from: "0.2.1"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: [.product(name: "OnBoardingKit", package: "swift-onboardingkit")]),
@@ -58,7 +58,7 @@ let controller = OBTemplateContainerViewController(
 window.contentViewController?.presentAsSheet(controller)
 ```
 
-A page also takes body text, an image of your own (`.image(_:)`, such as the app's icon), a tint for the rows' images (`featureTintColor`), the rows' metrics (`featureSpacing`) and a size. Its `layout` sets the side margins:
+A page also takes body text, an image of your own (`.image(_:)`, such as the app's icon), a tint for the rows' images (`featureTintColor`), the rows' metrics (`featureSpacing`: the framework's own 40-point icons by default, `.compact` for 24-point ones) and a size. Its `layout` sets the side margins:
 
 | Layout | Side margins | Image |
 |---|---|---|
